@@ -40,58 +40,58 @@
 ## Movements
 
 ### King
-![King](https://github.com/up-jacky/the-great-war/images/King.png)
+![King](https://github.com/up-jacky/the-great-war/blob/main/images/King.png)
 - Normal Chess King but cannot capture
 
 ### Queen
-![Queen](https://github.com/up-jacky/the-great-war/images/Queen.png)
+![Queen](https://github.com/up-jacky/the-great-war/blob/main/images/Queen.png)
 - Normal Chess Queen but cannot capture
 
 ### Flag
-![Flag](https://github.com/up-jacky/the-great-war/images/Flag.png)
+![Flag](https://github.com/up-jacky/the-great-war/blob/main/images/Flag.png)
 - Normal Chess King but cannot capture
 
 ### Prince
-![Prince](https://github.com/up-jacky/the-great-war/images/Prince.png)
+![Prince](https://github.com/up-jacky/the-great-war/blob/main/images/Prince.png)
 - Chess Knight and Chess King combined
 
 ### Wizard
-![Wizard](https://github.com/up-jacky/the-great-war/images/Wizard.png)
+![Wizard](https://github.com/up-jacky/the-great-war/blob/main/images/Wizard.png)
 - Chess Bishop with 1 backward tile
 
 ### Dragon
-![Dragon](https://github.com/up-jacky/the-great-war/images/Dragon.png)
+![Dragon](https://github.com/up-jacky/the-great-war/blob/main/images/Dragon.png)
 - Chess Queen but limited to 4 tiles in all directions
 
 ### Dwarf
-![Dwarf](https://github.com/up-jacky/the-great-war/images/Dwarf.png)
+![Dwarf](https://github.com/up-jacky/the-great-war/blob/main/images/Dwarf.png)
 - Normal Chess Rook
 
 ### Ranged Elf
-![Ranged Elf](https://github.com/up-jacky/the-great-war/images/ElfRanged.png)
+![Ranged Elf](https://github.com/up-jacky/the-great-war/blob/main/images/ElfRanged.png)
 - Can move like a king but cannot capture in those tiles
 - Can capture pieces without changing positions in an extra tile forward (best seen when played)
 
 ### Melee Elf
-![Melee Elf](https://github.com/up-jacky/the-great-war/images/ElfMelee.png)
+![Melee Elf](https://github.com/up-jacky/the-great-war/blob/main/images/ElfMelee.png)
 - Can move 2 x 3 (r x c) box both forward and backward
 
 ### Orc
-![Orc](https://github.com/up-jacky/the-great-war/images/Orc.png)
+![Orc](https://github.com/up-jacky/the-great-war/blob/main/images/Orc.png)
 - Can move 2 x 3 (r x c) box forward and 1 backward tile
 
 ### Human
-![Human](https://github.com/up-jacky/the-great-war/images/Human.png)
+![Human](https://github.com/up-jacky/the-great-war/blob/main/images/Human.png)
 - Can move 1 x 3 (r x c) forward
 
 ### Goblin
-![Goblin](https://github.com/up-jacky/the-great-war/images/King.png)
+![Goblin](https://github.com/up-jacky/the-great-war/blob/main/images/King.png)
 - Can move 2 tiles forward
 
 ### Human (Upgraded)
-![HumanUpgraded](https://github.com/up-jacky/the-great-war/images/HumanUpgraded.png)
+![HumanUpgraded](https://github.com/up-jacky/the-great-war/blob/main/images/HumanUpgraded.png)
 - Normal Shogi Gold
 
 ### Goblin (Upgraded)
-![GoblinUpgraded](https://github.com/up-jacky/the-great-war/images/GoblinUpgraded.png)
+![GoblinUpgraded](https://github.com/up-jacky/the-great-war/blob/main/images/GoblinUpgraded.png)
 - Normal Shogi Gold
