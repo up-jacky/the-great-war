@@ -9613,7 +9613,7 @@
     width: width8,
     height: height8,
     ipAddress: "localhost",
-    port: 443,
+    port: 15e3,
     imagePaths: ["images/King.png", "images/Queen.png", "images/Flag.png", "images/Flag1.png", "images/Flag2.png", "images/Prince.png", "images/Wizard.png", "images/Dragon.png", "images/Orc.png", "images/Dwarf.png", "images/ElfRanged.png", "images/ElfMelee.png", "images/Human.png", "images/Goblin.png", "images/Warrior.png", "images/Hobgoblin.png"]
   });
 
