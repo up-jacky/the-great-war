@@ -2389,7 +2389,7 @@
   };
   var connect = function(ipAddr) {
     return function(port2) {
-      var addr = "wss://" + (ipAddr + (":" + show2(port2)));
+      var addr = "ws://" + (ipAddr + (":" + show2(port2)));
       return function __do2() {
         log2(addr)();
         var ws = create(addr)([])();
