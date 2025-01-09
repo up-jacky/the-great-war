@@ -90,10 +90,10 @@
   };
   var applySecond = function(dictApply) {
     var apply1 = apply(dictApply);
-    var map6 = map(dictApply.Functor0());
+    var map7 = map(dictApply.Functor0());
     return function(a) {
       return function(b) {
-        return apply1(map6($$const(identity2))(a))(b);
+        return apply1(map7($$const(identity2))(a))(b);
       };
     };
   };
@@ -184,6 +184,7 @@
   var ordBooleanImpl = unsafeCompareImpl;
   var ordIntImpl = unsafeCompareImpl;
   var ordStringImpl = unsafeCompareImpl;
+  var ordCharImpl = unsafeCompareImpl;
 
   // output/Data.Eq/foreign.js
   var refEq = function(r1) {
@@ -193,6 +194,7 @@
   };
   var eqBooleanImpl = refEq;
   var eqIntImpl = refEq;
+  var eqCharImpl = refEq;
   var eqStringImpl = refEq;
   var eqArrayImpl = function(f) {
     return function(xs) {
@@ -212,6 +214,9 @@
   };
   var eqInt = {
     eq: eqIntImpl
+  };
+  var eqChar = {
+    eq: eqCharImpl
   };
   var eqBoolean = {
     eq: eqBooleanImpl
@@ -300,6 +305,14 @@
       }
     };
   }();
+  var ordChar = /* @__PURE__ */ function() {
+    return {
+      compare: ordCharImpl(LT.value)(EQ.value)(GT.value),
+      Eq0: function() {
+        return eqChar;
+      }
+    };
+  }();
   var ordBoolean = /* @__PURE__ */ function() {
     return {
       compare: ordBooleanImpl(LT.value)(EQ.value)(GT.value),
@@ -321,6 +334,13 @@
     bottom: bottomInt,
     Ord0: function() {
       return ordInt;
+    }
+  };
+  var boundedChar = {
+    top: topChar,
+    bottom: bottomChar,
+    Ord0: function() {
+      return ordChar;
     }
   };
   var bottom = function(dict) {
@@ -519,6 +539,7 @@
       };
     };
   };
+  var isNothing = /* @__PURE__ */ maybe(true)(/* @__PURE__ */ $$const(false));
   var isJust = /* @__PURE__ */ maybe(false)(/* @__PURE__ */ $$const(true));
   var functorMaybe = {
     map: function(v) {
@@ -534,6 +555,15 @@
   var map2 = /* @__PURE__ */ map(functorMaybe);
   var fromMaybe = function(a) {
     return maybe(a)(identity3);
+  };
+  var fromJust = function() {
+    return function(v) {
+      if (v instanceof Just) {
+        return v.value0;
+      }
+      ;
+      throw new Error("Failed pattern match at Data.Maybe (line 288, column 1 - line 288, column 46): " + [v.constructor.name]);
+    };
   };
   var eqMaybe = function(dictEq) {
     var eq2 = eq(dictEq);
@@ -918,6 +948,27 @@
     };
   };
 
+  // output/Data.Tuple/index.js
+  var Tuple = /* @__PURE__ */ function() {
+    function Tuple2(value0, value1) {
+      this.value0 = value0;
+      this.value1 = value1;
+    }
+    ;
+    Tuple2.create = function(value0) {
+      return function(value1) {
+        return new Tuple2(value0, value1);
+      };
+    };
+    return Tuple2;
+  }();
+  var snd = function(v) {
+    return v.value1;
+  };
+  var fst = function(v) {
+    return v.value0;
+  };
+
   // output/Control.Monad.Except.Trans/index.js
   var map3 = /* @__PURE__ */ map(functorEither);
   var ExceptT = function(x) {
@@ -1035,6 +1086,9 @@
   var replicateImpl = typeof Array.prototype.fill === "function" ? replicateFill : replicatePolyfill;
   var length = function(xs) {
     return xs.length;
+  };
+  var unconsImpl = function(empty4, next, xs) {
+    return xs.length === 0 ? empty4({}) : next(xs[0])(xs.slice(1));
   };
   var indexImpl = function(just, nothing, xs, i) {
     return i < 0 || i >= xs.length ? nothing : just(xs[i]);
@@ -1160,9 +1214,107 @@
     };
   };
 
+  // output/Data.FunctorWithIndex/foreign.js
+  var mapWithIndexArray = function(f) {
+    return function(xs) {
+      var l = xs.length;
+      var result = Array(l);
+      for (var i = 0; i < l; i++) {
+        result[i] = f(i)(xs[i]);
+      }
+      return result;
+    };
+  };
+
+  // output/Data.FunctorWithIndex/index.js
+  var mapWithIndex = function(dict) {
+    return dict.mapWithIndex;
+  };
+  var functorWithIndexArray = {
+    mapWithIndex: mapWithIndexArray,
+    Functor0: function() {
+      return functorArray;
+    }
+  };
+
+  // output/Data.Unfoldable/foreign.js
+  var unfoldrArrayImpl = function(isNothing2) {
+    return function(fromJust4) {
+      return function(fst2) {
+        return function(snd2) {
+          return function(f) {
+            return function(b) {
+              var result = [];
+              var value12 = b;
+              while (true) {
+                var maybe2 = f(value12);
+                if (isNothing2(maybe2)) return result;
+                var tuple = fromJust4(maybe2);
+                result.push(fst2(tuple));
+                value12 = snd2(tuple);
+              }
+            };
+          };
+        };
+      };
+    };
+  };
+
+  // output/Data.Unfoldable1/foreign.js
+  var unfoldr1ArrayImpl = function(isNothing2) {
+    return function(fromJust4) {
+      return function(fst2) {
+        return function(snd2) {
+          return function(f) {
+            return function(b) {
+              var result = [];
+              var value12 = b;
+              while (true) {
+                var tuple = f(value12);
+                result.push(fst2(tuple));
+                var maybe2 = snd2(tuple);
+                if (isNothing2(maybe2)) return result;
+                value12 = fromJust4(maybe2);
+              }
+            };
+          };
+        };
+      };
+    };
+  };
+
+  // output/Data.Unfoldable1/index.js
+  var fromJust2 = /* @__PURE__ */ fromJust();
+  var unfoldable1Array = {
+    unfoldr1: /* @__PURE__ */ unfoldr1ArrayImpl(isNothing)(fromJust2)(fst)(snd)
+  };
+
+  // output/Data.Unfoldable/index.js
+  var fromJust3 = /* @__PURE__ */ fromJust();
+  var unfoldr = function(dict) {
+    return dict.unfoldr;
+  };
+  var unfoldableArray = {
+    unfoldr: /* @__PURE__ */ unfoldrArrayImpl(isNothing)(fromJust3)(fst)(snd),
+    Unfoldable10: function() {
+      return unfoldable1Array;
+    }
+  };
+
   // output/Data.Array/index.js
+  var uncons = /* @__PURE__ */ function() {
+    return runFn3(unconsImpl)($$const(Nothing.value))(function(x) {
+      return function(xs) {
+        return new Just({
+          head: x,
+          tail: xs
+        });
+      };
+    });
+  }();
   var slice = /* @__PURE__ */ runFn3(sliceImpl);
   var range2 = /* @__PURE__ */ runFn2(rangeImpl);
+  var mapWithIndex2 = /* @__PURE__ */ mapWithIndex(functorWithIndexArray);
   var index = /* @__PURE__ */ function() {
     return runFn4(indexImpl)(Just.create)(Nothing.value);
   }();
@@ -1316,6 +1468,9 @@
     return function(s) {
       return s.split(sep);
     };
+  };
+  var toLower = function(s) {
+    return s.toLowerCase();
   };
   var joinWith = function(s) {
     return function(xs) {
@@ -1865,6 +2020,9 @@
   }();
 
   // output/Data.String.CodeUnits/foreign.js
+  var singleton4 = function(c) {
+    return c;
+  };
   var length3 = function(s) {
     return s.length;
   };
@@ -1878,9 +2036,22 @@
       };
     };
   };
+  var drop2 = function(n) {
+    return function(s) {
+      return s.substring(n);
+    };
+  };
   var splitAt = function(i) {
     return function(s) {
       return { before: s.substring(0, i), after: s.substring(i) };
+    };
+  };
+
+  // output/Data.String.Unsafe/foreign.js
+  var charAt = function(i) {
+    return function(s) {
+      if (i >= 0 && i < s.length) return s.charAt(i);
+      throw new Error("Data.String.Unsafe.charAt: Invalid index.");
     };
   };
 
@@ -2024,6 +2195,91 @@
     };
   }
 
+  // output/Data.Enum/foreign.js
+  function toCharCode(c) {
+    return c.charCodeAt(0);
+  }
+  function fromCharCode(c) {
+    return String.fromCharCode(c);
+  }
+
+  // output/Data.Enum/index.js
+  var bottom1 = /* @__PURE__ */ bottom(boundedChar);
+  var top1 = /* @__PURE__ */ top(boundedChar);
+  var toEnum = function(dict) {
+    return dict.toEnum;
+  };
+  var fromEnum = function(dict) {
+    return dict.fromEnum;
+  };
+  var toEnumWithDefaults = function(dictBoundedEnum) {
+    var toEnum1 = toEnum(dictBoundedEnum);
+    var fromEnum1 = fromEnum(dictBoundedEnum);
+    var bottom22 = bottom(dictBoundedEnum.Bounded0());
+    return function(low2) {
+      return function(high2) {
+        return function(x) {
+          var v = toEnum1(x);
+          if (v instanceof Just) {
+            return v.value0;
+          }
+          ;
+          if (v instanceof Nothing) {
+            var $140 = x < fromEnum1(bottom22);
+            if ($140) {
+              return low2;
+            }
+            ;
+            return high2;
+          }
+          ;
+          throw new Error("Failed pattern match at Data.Enum (line 158, column 33 - line 160, column 62): " + [v.constructor.name]);
+        };
+      };
+    };
+  };
+  var defaultSucc = function(toEnum$prime) {
+    return function(fromEnum$prime) {
+      return function(a) {
+        return toEnum$prime(fromEnum$prime(a) + 1 | 0);
+      };
+    };
+  };
+  var defaultPred = function(toEnum$prime) {
+    return function(fromEnum$prime) {
+      return function(a) {
+        return toEnum$prime(fromEnum$prime(a) - 1 | 0);
+      };
+    };
+  };
+  var charToEnum = function(v) {
+    if (v >= toCharCode(bottom1) && v <= toCharCode(top1)) {
+      return new Just(fromCharCode(v));
+    }
+    ;
+    return Nothing.value;
+  };
+  var enumChar = {
+    succ: /* @__PURE__ */ defaultSucc(charToEnum)(toCharCode),
+    pred: /* @__PURE__ */ defaultPred(charToEnum)(toCharCode),
+    Ord0: function() {
+      return ordChar;
+    }
+  };
+  var boundedEnumChar = /* @__PURE__ */ function() {
+    return {
+      cardinality: toCharCode(top1) - toCharCode(bottom1) | 0,
+      toEnum: charToEnum,
+      fromEnum: toCharCode,
+      Bounded0: function() {
+        return boundedChar;
+      },
+      Enum1: function() {
+        return enumChar;
+      }
+    };
+  }();
+
   // output/Web.Socket.WebSocket/index.js
   var toEventTarget = unsafeCoerce2;
   var sendString = sendImpl;
@@ -2134,13 +2390,14 @@
   var connect = function(ipAddr) {
     return function(port2) {
       var addr = "ws://" + (ipAddr + (":" + show2(port2)));
-      return function __do() {
+      return function __do2() {
+        log2(addr)();
         var ws = create(addr)([])();
         var avPlayerId = empty2();
         var avSendQueue = $$new2([])();
         var avRecvQueue = $$new2([])();
         var send = function(payload) {
-          return function __do2() {
+          return function __do3() {
             var maybePlayerId = tryRead(avPlayerId)();
             if (maybePlayerId instanceof Nothing) {
               log2("Added to send queue: " + payload)();
@@ -2150,7 +2407,7 @@
                 }
                 ;
                 if (v instanceof Right) {
-                  return function __do3() {
+                  return function __do4() {
                     $$void2(put(append12(v.value0)([payload]))(avSendQueue)(function(v1) {
                       return pure2(unit);
                     }))();
@@ -2158,7 +2415,7 @@
                   };
                 }
                 ;
-                throw new Error("Failed pattern match at CS150241Project.Networking (line 84, column 13 - line 84, column 46): " + [v.constructor.name]);
+                throw new Error("Failed pattern match at CS150241Project.Networking (line 85, column 13 - line 85, column 46): " + [v.constructor.name]);
               };
               $$void2(take(avSendQueue)(doWhenFilled))();
               return unit;
@@ -2172,10 +2429,10 @@
               return sendMessage(ws)(messageToSend)();
             }
             ;
-            throw new Error("Failed pattern match at CS150241Project.Networking (line 79, column 7 - line 94, column 39): " + [maybePlayerId.constructor.name]);
+            throw new Error("Failed pattern match at CS150241Project.Networking (line 80, column 7 - line 95, column 39): " + [maybePlayerId.constructor.name]);
           };
         };
-        var recv = function __do2() {
+        var recv = function __do3() {
           var maybeRecvQueue = tryTake(avRecvQueue)();
           if (maybeRecvQueue instanceof Nothing) {
             return [];
@@ -2186,7 +2443,7 @@
             return maybeRecvQueue.value0;
           }
           ;
-          throw new Error("Failed pattern match at CS150241Project.Networking (line 108, column 7 - line 112, column 25): " + [maybeRecvQueue.constructor.name]);
+          throw new Error("Failed pattern match at CS150241Project.Networking (line 109, column 7 - line 113, column 25): " + [maybeRecvQueue.constructor.name]);
         };
         var processSendQueue = /* @__PURE__ */ function() {
           var doWhenSendQueueFilled = function(v) {
@@ -2198,9 +2455,9 @@
               return for_2(v.value0)(send);
             }
             ;
-            throw new Error("Failed pattern match at CS150241Project.Networking (line 99, column 9 - line 99, column 51): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at CS150241Project.Networking (line 100, column 9 - line 100, column 51): " + [v.constructor.name]);
           };
-          return function __do2() {
+          return function __do3() {
             $$void2(take(avSendQueue)(doWhenSendQueueFilled))();
             return unit;
           };
@@ -2218,7 +2475,7 @@
             }
             ;
             if (v instanceof Right) {
-              return function __do2() {
+              return function __do3() {
                 $$void2(put(append12(v.value0)([new Just(message2)]))(avRecvQueue)(function(v1) {
                   return pure2(unit);
                 }))();
@@ -2226,9 +2483,9 @@
               };
             }
             ;
-            throw new Error("Failed pattern match at CS150241Project.Networking (line 117, column 9 - line 117, column 42): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at CS150241Project.Networking (line 118, column 9 - line 118, column 42): " + [v.constructor.name]);
           };
-          return function __do2() {
+          return function __do3() {
             $$void2(take(avRecvQueue)(doWhenFilled))();
             return unit;
           };
@@ -2252,7 +2509,7 @@
               }
               ;
               if (v2 instanceof Just) {
-                return function __do2() {
+                return function __do3() {
                   var maybePlayerId = tryRead(state3.avPlayerId)();
                   if (maybePlayerId instanceof Nothing) {
                     $$void2(put(v2.value0.playerId)(state3.avPlayerId)(function(v3) {
@@ -2266,17 +2523,17 @@
                     return state3.processSendQueue();
                   }
                   ;
-                  throw new Error("Failed pattern match at CS150241Project.Networking (line 141, column 21 - line 148, column 47): " + [maybePlayerId.constructor.name]);
+                  throw new Error("Failed pattern match at CS150241Project.Networking (line 142, column 21 - line 149, column 47): " + [maybePlayerId.constructor.name]);
                 };
               }
               ;
-              throw new Error("Failed pattern match at CS150241Project.Networking (line 136, column 17 - line 148, column 47): " + [v2.constructor.name]);
+              throw new Error("Failed pattern match at CS150241Project.Networking (line 137, column 17 - line 149, column 47): " + [v2.constructor.name]);
             }
             ;
-            throw new Error("Failed pattern match at CS150241Project.Networking (line 133, column 13 - line 148, column 47): " + [v1.constructor.name]);
+            throw new Error("Failed pattern match at CS150241Project.Networking (line 134, column 13 - line 149, column 47): " + [v1.constructor.name]);
           }
           ;
-          throw new Error("Failed pattern match at CS150241Project.Networking (line 128, column 5 - line 148, column 47): " + [v.constructor.name]);
+          throw new Error("Failed pattern match at CS150241Project.Networking (line 129, column 5 - line 149, column 47): " + [v.constructor.name]);
         })();
         addEventListener(onMessage)(messageListener)(false)(toEventTarget(ws))();
         return state3;
@@ -3002,9 +3259,9 @@
   var for_3 = /* @__PURE__ */ for_(applicativeEffect)(foldableArray);
   var insert2 = /* @__PURE__ */ insert(ordString);
   var gameLoop = function(engine) {
-    return function __do() {
+    return function __do2() {
       var w = windowImpl();
-      return $$void3(setTimeout2(div2(1e3)(engine.fps))($$void3(flip(requestAnimationFrame)(w)(function __do2() {
+      return $$void3(setTimeout2(div2(1e3)(engine.fps))($$void3(flip(requestAnimationFrame)(w)(function __do3() {
         var state1 = read(engine.refState)();
         var state22 = engine.onTick(engine.networkingState.send)(state1)();
         var messages = engine.networkingState.recv();
@@ -3015,7 +3272,7 @@
             }
             ;
             if (maybeMsg instanceof Just) {
-              return function __do3() {
+              return function __do4() {
                 var state4 = acc();
                 return engine.onMessage(engine.networkingState.send)(maybeMsg.value0)(state4)();
               };
@@ -3032,7 +3289,7 @@
     };
   };
   var startNetworkGame = function(settings) {
-    return function __do() {
+    return function __do2() {
       var networkingState = connect(settings.ipAddress)(settings.port)();
       var w = windowImpl();
       var doc = document2(w)();
@@ -3048,7 +3305,7 @@
           }
           ;
           if (maybeImg instanceof Just) {
-            return function __do2() {
+            return function __do3() {
               var images2 = read(refImages)();
               return write(insert2(path)(maybeImg.value0)(images2))(refImages)();
             };
@@ -3060,7 +3317,7 @@
       var keyDownHandler = eventListener(function(e) {
         var v = fromEvent2(e);
         if (v instanceof Just) {
-          return function __do2() {
+          return function __do3() {
             preventDefault(e)();
             var state3 = read(refState)();
             var newState = settings.onKeyDown(networkingState.send)(code(v.value0))(state3)();
@@ -3077,7 +3334,7 @@
       var keyUpHandler = eventListener(function(e) {
         var v = fromEvent2(e);
         if (v instanceof Just) {
-          return function __do2() {
+          return function __do3() {
             preventDefault(e)();
             var state3 = read(refState)();
             var newState = settings.onKeyUp(networkingState.send)(code(v.value0))(state3)();
@@ -3094,7 +3351,7 @@
       var mouseDownHandler = eventListener(function(e) {
         var v = fromEvent3(e);
         if (v instanceof Just) {
-          return function __do2() {
+          return function __do3() {
             preventDefault(e)();
             var state3 = read(refState)();
             var newState = settings.onMouseDown(networkingState.send)({
@@ -3148,7 +3405,7 @@
   var show3 = /* @__PURE__ */ show(showInt);
   var strokeWith = function(ctx) {
     return function(color) {
-      return function __do() {
+      return function __do2() {
         setFillStyle(ctx)(color)();
         return stroke(ctx)();
       };
@@ -3156,7 +3413,7 @@
   };
   var startCircle = function(ctx) {
     return function(v) {
-      return function __do() {
+      return function __do2() {
         beginPath(ctx)();
         return arc(ctx)({
           start: 0,
@@ -3171,16 +3428,26 @@
   };
   var fillWith = function(ctx) {
     return function(color) {
-      return function __do() {
+      return function __do2() {
         setFillStyle(ctx)(color)();
         return fill(ctx)();
+      };
+    };
+  };
+  var drawTextLeft = function(ctx) {
+    return function(v) {
+      var style = show3(v.size) + ("px " + v.font);
+      return function __do2() {
+        setFont(ctx)(style)();
+        setFillStyle(ctx)(v.color)();
+        return fillText(ctx)(v.text)(v.x)(v.y)();
       };
     };
   };
   var drawText = function(ctx) {
     return function(v) {
       var style = show3(v.size) + ("px " + v.font);
-      return function __do() {
+      return function __do2() {
         setFont(ctx)(style)();
         setFillStyle(ctx)(v.color)();
         var metrics = measureText(ctx)(v.text)();
@@ -3190,7 +3457,7 @@
   };
   var drawRectOutline = function(ctx) {
     return function(v) {
-      return function __do() {
+      return function __do2() {
         beginPath(ctx)();
         rect(ctx)({
           x: v.x,
@@ -3204,7 +3471,7 @@
   };
   var drawRect = function(ctx) {
     return function(v) {
-      return function __do() {
+      return function __do2() {
         beginPath(ctx)();
         rect(ctx)({
           x: v.x,
@@ -3225,7 +3492,7 @@
   };
   var drawCircle = function(ctx) {
     return function(v) {
-      return function __do() {
+      return function __do2() {
         startCircle(ctx)({
           x: v.x,
           y: v.y,
@@ -3237,7 +3504,7 @@
   };
   var clearCanvas = function(ctx) {
     return function(v) {
-      return function __do() {
+      return function __do2() {
         setFillStyle(ctx)(v.color)();
         rect(ctx)({
           x: 0,
@@ -3250,12 +3517,182 @@
     };
   };
 
+  // output/Data.String.CodePoints/foreign.js
+  var hasArrayFrom = typeof Array.from === "function";
+  var hasStringIterator = typeof Symbol !== "undefined" && Symbol != null && typeof Symbol.iterator !== "undefined" && typeof String.prototype[Symbol.iterator] === "function";
+  var hasFromCodePoint = typeof String.prototype.fromCodePoint === "function";
+  var hasCodePointAt = typeof String.prototype.codePointAt === "function";
+  var _unsafeCodePointAt0 = function(fallback) {
+    return hasCodePointAt ? function(str) {
+      return str.codePointAt(0);
+    } : fallback;
+  };
+  var _singleton = function(fallback) {
+    return hasFromCodePoint ? String.fromCodePoint : fallback;
+  };
+  var _take = function(fallback) {
+    return function(n) {
+      if (hasStringIterator) {
+        return function(str) {
+          var accum = "";
+          var iter = str[Symbol.iterator]();
+          for (var i = 0; i < n; ++i) {
+            var o = iter.next();
+            if (o.done) return accum;
+            accum += o.value;
+          }
+          return accum;
+        };
+      }
+      return fallback(n);
+    };
+  };
+  var _toCodePointArray = function(fallback) {
+    return function(unsafeCodePointAt02) {
+      if (hasArrayFrom) {
+        return function(str) {
+          return Array.from(str, unsafeCodePointAt02);
+        };
+      }
+      return fallback;
+    };
+  };
+
+  // output/Data.String.CodePoints/index.js
+  var fromEnum2 = /* @__PURE__ */ fromEnum(boundedEnumChar);
+  var map5 = /* @__PURE__ */ map(functorMaybe);
+  var unfoldr2 = /* @__PURE__ */ unfoldr(unfoldableArray);
+  var div3 = /* @__PURE__ */ div(euclideanRingInt);
+  var mod2 = /* @__PURE__ */ mod(euclideanRingInt);
+  var unsurrogate = function(lead) {
+    return function(trail) {
+      return (((lead - 55296 | 0) * 1024 | 0) + (trail - 56320 | 0) | 0) + 65536 | 0;
+    };
+  };
+  var isTrail = function(cu) {
+    return 56320 <= cu && cu <= 57343;
+  };
+  var isLead = function(cu) {
+    return 55296 <= cu && cu <= 56319;
+  };
+  var uncons3 = function(s) {
+    var v = length3(s);
+    if (v === 0) {
+      return Nothing.value;
+    }
+    ;
+    if (v === 1) {
+      return new Just({
+        head: fromEnum2(charAt(0)(s)),
+        tail: ""
+      });
+    }
+    ;
+    var cu1 = fromEnum2(charAt(1)(s));
+    var cu0 = fromEnum2(charAt(0)(s));
+    var $43 = isLead(cu0) && isTrail(cu1);
+    if ($43) {
+      return new Just({
+        head: unsurrogate(cu0)(cu1),
+        tail: drop2(2)(s)
+      });
+    }
+    ;
+    return new Just({
+      head: cu0,
+      tail: drop2(1)(s)
+    });
+  };
+  var unconsButWithTuple = function(s) {
+    return map5(function(v) {
+      return new Tuple(v.head, v.tail);
+    })(uncons3(s));
+  };
+  var toCodePointArrayFallback = function(s) {
+    return unfoldr2(unconsButWithTuple)(s);
+  };
+  var unsafeCodePointAt0Fallback = function(s) {
+    var cu0 = fromEnum2(charAt(0)(s));
+    var $47 = isLead(cu0) && length3(s) > 1;
+    if ($47) {
+      var cu1 = fromEnum2(charAt(1)(s));
+      var $48 = isTrail(cu1);
+      if ($48) {
+        return unsurrogate(cu0)(cu1);
+      }
+      ;
+      return cu0;
+    }
+    ;
+    return cu0;
+  };
+  var unsafeCodePointAt0 = /* @__PURE__ */ _unsafeCodePointAt0(unsafeCodePointAt0Fallback);
+  var toCodePointArray = /* @__PURE__ */ _toCodePointArray(toCodePointArrayFallback)(unsafeCodePointAt0);
+  var length6 = function($74) {
+    return length(toCodePointArray($74));
+  };
+  var fromCharCode2 = /* @__PURE__ */ function() {
+    var $75 = toEnumWithDefaults(boundedEnumChar)(bottom(boundedChar))(top(boundedChar));
+    return function($76) {
+      return singleton4($75($76));
+    };
+  }();
+  var singletonFallback = function(v) {
+    if (v <= 65535) {
+      return fromCharCode2(v);
+    }
+    ;
+    var lead = div3(v - 65536 | 0)(1024) + 55296 | 0;
+    var trail = mod2(v - 65536 | 0)(1024) + 56320 | 0;
+    return fromCharCode2(lead) + fromCharCode2(trail);
+  };
+  var singleton6 = /* @__PURE__ */ _singleton(singletonFallback);
+  var takeFallback = function(v) {
+    return function(v1) {
+      if (v < 1) {
+        return "";
+      }
+      ;
+      var v2 = uncons3(v1);
+      if (v2 instanceof Just) {
+        return singleton6(v2.value0.head) + takeFallback(v - 1 | 0)(v2.value0.tail);
+      }
+      ;
+      return v1;
+    };
+  };
+  var take4 = /* @__PURE__ */ _take(takeFallback);
+  var splitAt2 = function(i) {
+    return function(s) {
+      var before = take4(i)(s);
+      return {
+        before,
+        after: drop2(length3(before))(s)
+      };
+    };
+  };
+
+  // output/Effect.Random/foreign.js
+  var random = Math.random;
+
+  // output/Effect.Random/index.js
+  var randomInt = function(low2) {
+    return function(high2) {
+      return function __do2() {
+        var n = random();
+        var asNumber = (toNumber(high2) - toNumber(low2) + 1) * n + toNumber(low2);
+        return floor2(asNumber);
+      };
+    };
+  };
+
   // output/Main/index.js
   var show4 = /* @__PURE__ */ show(showInt);
   var genericShowConstructor3 = /* @__PURE__ */ genericShowConstructor(genericShowArgsNoArguments);
   var compare2 = /* @__PURE__ */ compare(ordInt);
   var compare12 = /* @__PURE__ */ compare(ordBoolean);
   var pure4 = /* @__PURE__ */ pure(applicativeEffect);
+  var bind3 = /* @__PURE__ */ bind(bindEffect);
   var showRecord2 = /* @__PURE__ */ showRecord()()(/* @__PURE__ */ showRecordFieldsCons({
     reflectSymbol: function() {
       return "payload";
@@ -3267,21 +3704,21 @@
   })(showPlayerId))(showString));
   var show1 = /* @__PURE__ */ show(showRecord2);
   var append13 = /* @__PURE__ */ append(semigroupArray);
-  var bind3 = /* @__PURE__ */ bind(bindEffect);
-  var mapFlipped2 = /* @__PURE__ */ mapFlipped(functorArray);
-  var foldl3 = /* @__PURE__ */ foldl(foldableArray);
-  var mod2 = /* @__PURE__ */ mod(euclideanRingInt);
-  var show22 = /* @__PURE__ */ show(showPlayerId);
-  var show32 = /* @__PURE__ */ show(/* @__PURE__ */ showMaybe(showPlayerId));
-  var lookup2 = /* @__PURE__ */ lookup(ordString);
-  var foldl12 = /* @__PURE__ */ foldl(foldableList);
-  var eq3 = /* @__PURE__ */ eq(/* @__PURE__ */ eqMaybe(eqBoolean));
+  var foldl3 = /* @__PURE__ */ foldl(foldableMap);
+  var mapFlipped2 = /* @__PURE__ */ mapFlipped(functorMap);
+  var mapFlipped1 = /* @__PURE__ */ mapFlipped(functorArray);
+  var foldl12 = /* @__PURE__ */ foldl(foldableArray);
+  var show22 = /* @__PURE__ */ show(/* @__PURE__ */ showMaybe(showPlayerId));
+  var mod3 = /* @__PURE__ */ mod(euclideanRingInt);
   var not1 = /* @__PURE__ */ not(/* @__PURE__ */ heytingAlgebraFunction(heytingAlgebraBoolean));
-  var foldl22 = /* @__PURE__ */ foldl(foldableMap);
-  var mapFlipped1 = /* @__PURE__ */ mapFlipped(functorMap);
-  var map5 = /* @__PURE__ */ map(functorArray);
+  var map6 = /* @__PURE__ */ map(functorArray);
+  var eq3 = /* @__PURE__ */ eq(/* @__PURE__ */ eqMaybe(eqPlayerId));
+  var eq4 = /* @__PURE__ */ eq(/* @__PURE__ */ eqMaybe(eqBoolean));
+  var show32 = /* @__PURE__ */ show(showPlayerId);
+  var lookup2 = /* @__PURE__ */ lookup(ordString);
+  var foldl22 = /* @__PURE__ */ foldl(foldableList);
   var show42 = /* @__PURE__ */ show(/* @__PURE__ */ showArray(showRecord2));
-  var eq4 = /* @__PURE__ */ eq(eqPlayerId);
+  var eq5 = /* @__PURE__ */ eq(eqPlayerId);
   var mapFlipped22 = /* @__PURE__ */ mapFlipped(functorEffect);
   var King = /* @__PURE__ */ function() {
     function King2() {
@@ -3367,19 +3804,26 @@
     Goblin2.value = new Goblin2();
     return Goblin2;
   }();
-  var HumanUpgraded = /* @__PURE__ */ function() {
-    function HumanUpgraded2() {
+  var Warrior = /* @__PURE__ */ function() {
+    function Warrior2() {
     }
     ;
-    HumanUpgraded2.value = new HumanUpgraded2();
-    return HumanUpgraded2;
+    Warrior2.value = new Warrior2();
+    return Warrior2;
   }();
-  var GoblinUpgraded = /* @__PURE__ */ function() {
-    function GoblinUpgraded2() {
+  var Hobgoblin = /* @__PURE__ */ function() {
+    function Hobgoblin2() {
     }
     ;
-    GoblinUpgraded2.value = new GoblinUpgraded2();
-    return GoblinUpgraded2;
+    Hobgoblin2.value = new Hobgoblin2();
+    return Hobgoblin2;
+  }();
+  var NotConnected = /* @__PURE__ */ function() {
+    function NotConnected2() {
+    }
+    ;
+    NotConnected2.value = new NotConnected2();
+    return NotConnected2;
   }();
   var Waiting = /* @__PURE__ */ function() {
     function Waiting2() {
@@ -3459,7 +3903,7 @@
         return show4(v.value1);
       }
       ;
-      throw new Error("Failed pattern match at Main (line 119, column 1 - line 121, column 65): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 121, column 1 - line 123, column 65): " + [v.constructor.name]);
     }
   };
   var show5 = /* @__PURE__ */ show(showPosition);
@@ -3514,14 +3958,14 @@
       }
       ;
       if (x instanceof Inr && (x.value0 instanceof Inr && (x.value0.value0 instanceof Inr && (x.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inl)))))))))))) {
-        return HumanUpgraded.value;
+        return Warrior.value;
       }
       ;
       if (x instanceof Inr && (x.value0 instanceof Inr && (x.value0.value0 instanceof Inr && (x.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && (x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr && x.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0.value0 instanceof Inr)))))))))))) {
-        return GoblinUpgraded.value;
+        return Hobgoblin.value;
       }
       ;
-      throw new Error("Failed pattern match at Main (line 114, column 1 - line 114, column 35): " + [x.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 116, column 1 - line 116, column 35): " + [x.constructor.name]);
     },
     from: function(x) {
       if (x instanceof King) {
@@ -3572,15 +4016,15 @@
         return new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inl(NoArguments.value))))))))))));
       }
       ;
-      if (x instanceof HumanUpgraded) {
+      if (x instanceof Warrior) {
         return new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inl(NoArguments.value)))))))))))));
       }
       ;
-      if (x instanceof GoblinUpgraded) {
+      if (x instanceof Hobgoblin) {
         return new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(new Inr(NoArguments.value)))))))))))));
       }
       ;
-      throw new Error("Failed pattern match at Main (line 114, column 1 - line 114, column 35): " + [x.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 116, column 1 - line 116, column 35): " + [x.constructor.name]);
     }
   };
   var showUnitType = {
@@ -3634,11 +4078,11 @@
       }
     }))(/* @__PURE__ */ genericShowSum(/* @__PURE__ */ genericShowConstructor3({
       reflectSymbol: function() {
-        return "HumanUpgraded";
+        return "Warrior";
       }
     }))(/* @__PURE__ */ genericShowConstructor3({
       reflectSymbol: function() {
-        return "GoblinUpgraded";
+        return "Hobgoblin";
       }
     })))))))))))))))
   };
@@ -3694,11 +4138,11 @@
           return true;
         }
         ;
-        if (x instanceof HumanUpgraded && y instanceof HumanUpgraded) {
+        if (x instanceof Warrior && y instanceof Warrior) {
           return true;
         }
         ;
-        if (x instanceof GoblinUpgraded && y instanceof GoblinUpgraded) {
+        if (x instanceof Hobgoblin && y instanceof Hobgoblin) {
           return true;
         }
         ;
@@ -3706,10 +4150,14 @@
       };
     }
   };
-  var eq5 = /* @__PURE__ */ eq(eqUnitType);
-  var eqState = {
+  var eq6 = /* @__PURE__ */ eq(eqUnitType);
+  var eqStatus = {
     eq: function(x) {
       return function(y) {
+        if (x instanceof NotConnected && y instanceof NotConnected) {
+          return true;
+        }
+        ;
         if (x instanceof Waiting && y instanceof Waiting) {
           return true;
         }
@@ -3726,7 +4174,7 @@
       };
     }
   };
-  var eq6 = /* @__PURE__ */ eq(eqState);
+  var eq7 = /* @__PURE__ */ eq(eqStatus);
   var eqPosition = {
     eq: function(x) {
       return function(y) {
@@ -3742,9 +4190,9 @@
       };
     }
   };
-  var eq7 = /* @__PURE__ */ eq(eqPosition);
-  var eq8 = /* @__PURE__ */ eq(/* @__PURE__ */ eqMaybe(eqPosition));
+  var eq8 = /* @__PURE__ */ eq(eqPosition);
   var eq9 = /* @__PURE__ */ eq(/* @__PURE__ */ eqArray(eqPosition));
+  var eq10 = /* @__PURE__ */ eq(/* @__PURE__ */ eqMaybe(eqPosition));
   var ordPosition = {
     compare: function(x) {
       return function(y) {
@@ -3797,18 +4245,18 @@
     eq: function(x) {
       return function(y) {
         if (x instanceof Board && y instanceof Board) {
-          return x.value0.opponent === y.value0.opponent && eq7(x.value0.pos)(y.value0.pos) && eq5(x.value0.type)(y.value0.type);
+          return x.value0.opponent === y.value0.opponent && eq8(x.value0.pos)(y.value0.pos) && eq6(x.value0.type)(y.value0.type);
         }
         ;
         if (x instanceof Hand && y instanceof Hand) {
-          return x.value0.count === y.value0.count && x.value0.opponent === y.value0.opponent && eq7(x.value0.pos)(y.value0.pos) && eq5(x.value0.type)(y.value0.type);
+          return x.value0.count === y.value0.count && x.value0.opponent === y.value0.opponent && eq8(x.value0.pos)(y.value0.pos) && eq6(x.value0.type)(y.value0.type);
         }
         ;
         return false;
       };
     }
   };
-  var eq10 = /* @__PURE__ */ eq(eqPiece);
+  var eq11 = /* @__PURE__ */ eq(eqPiece);
   var toOpponent = function(piece) {
     if (piece instanceof Board) {
       return new Board({
@@ -3827,7 +4275,7 @@
       });
     }
     ;
-    throw new Error("Failed pattern match at Main (line 715, column 5 - line 717, column 47): " + [piece.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1003, column 5 - line 1005, column 47): " + [piece.constructor.name]);
   };
   var toAllied = function(piece) {
     if (piece instanceof Board) {
@@ -3847,7 +4295,7 @@
       });
     }
     ;
-    throw new Error("Failed pattern match at Main (line 720, column 18 - line 722, column 42): " + [piece.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1008, column 18 - line 1010, column 42): " + [piece.constructor.name]);
   };
   var stringToPos = function(str) {
     var tokens = split(", ")(str);
@@ -3867,10 +4315,10 @@
           return v2.value0;
         }
         ;
-        throw new Error("Failed pattern match at Main (line 823, column 19 - line 825, column 24): " + [v2.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 1116, column 19 - line 1118, column 24): " + [v2.constructor.name]);
       }
       ;
-      throw new Error("Failed pattern match at Main (line 821, column 9 - line 825, column 24): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1114, column 9 - line 1118, column 24): " + [v.constructor.name]);
     }();
     var c = function() {
       var v = index(tokens)(1);
@@ -3888,13 +4336,13 @@
           return v2.value0;
         }
         ;
-        throw new Error("Failed pattern match at Main (line 828, column 19 - line 830, column 24): " + [v2.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 1121, column 19 - line 1123, column 24): " + [v2.constructor.name]);
       }
       ;
-      throw new Error("Failed pattern match at Main (line 826, column 9 - line 830, column 24): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1119, column 9 - line 1123, column 24): " + [v.constructor.name]);
     }();
-    var $442 = c === (-1 | 0);
-    if ($442) {
+    var $494 = c === (-1 | 0);
+    if ($494) {
       return pure4(new OnHand(true, r));
     }
     ;
@@ -3907,7 +4355,7 @@
     return function(i) {
       var v = index(tokens)(i);
       if (v instanceof Nothing) {
-        return function __do() {
+        return function __do2() {
           log2("Error: No value at index " + show4(i))();
           return new Grid({
             r: -1 | 0,
@@ -3920,43 +4368,47 @@
         return stringToPos(v.value0);
       }
       ;
-      throw new Error("Failed pattern match at Main (line 770, column 5 - line 775, column 34): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1063, column 5 - line 1068, column 34): " + [v.constructor.name]);
     };
   };
   var rows4 = 13;
   var pieceToArray = function(piece) {
     return [piece];
   };
-  var onMessage2 = function(v) {
-    return function(message2) {
+  var onKeyUp = function(v) {
+    return function(key2) {
       return function(state3) {
-        return function __do() {
-          log2("Received message: " + show1(message2))();
-          return {
+        if (key2 === "ShiftLeft") {
+          return pure4({
             actions: state3.actions,
             attackedPositions: state3.attackedPositions,
             availableMoves: state3.availableMoves,
             board: state3.board,
             canSend: state3.canSend,
+            changeName: state3.changeName,
+            chat: state3.chat,
+            chatLog: state3.chatLog,
+            chatState: state3.chatState,
             flagPosition: state3.flagPosition,
             hand: state3.hand,
+            lastReceivedMessage: state3.lastReceivedMessage,
+            messages: state3.messages,
+            name: state3.name,
+            nameChanged: state3.nameChanged,
+            opponentName: state3.opponentName,
             playerId: state3.playerId,
+            previousMove: state3.previousMove,
+            request: state3.request,
             score: state3.score,
             selectedPiece: state3.selectedPiece,
-            state: state3.state,
+            status: state3.status,
             tickCount: state3.tickCount,
             turn: state3.turn,
             winner: state3.winner,
-            lastReceivedMessage: new Just(message2),
-            messages: append13(state3.messages)([message2])
-          };
-        };
-      };
-    };
-  };
-  var onKeyUp = function(v) {
-    return function(v1) {
-      return function(state3) {
+            upperCase: !state3.upperCase
+          });
+        }
+        ;
         return pure4(state3);
       };
     };
@@ -3964,24 +4416,975 @@
   var onKeyDown = function(send) {
     return function(key2) {
       return function(state3) {
-        return function __do() {
-          (function() {
+        if (state3.chatState) {
+          if (key2 === "Enter") {
+            var $502 = state3.chat === "";
+            if ($502) {
+              return pure4({
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                chatState: false
+              });
+            }
+            ;
+            return function __do2() {
+              send("Chat: Send " + state3.chat)();
+              return state3;
+            };
+          }
+          ;
+          if (key2 === "Escape") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              upperCase: state3.upperCase,
+              winner: state3.winner,
+              chatState: false
+            });
+          }
+          ;
+          if (key2 === "Backspace") {
+            return function __do2() {
+              var l = length6(state3.chat) - 1 | 0;
+              var split2 = splitAt2(l)(state3.chat);
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                chat: split2.before
+              };
+            };
+          }
+          ;
+          if (key2 === "Space") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              upperCase: state3.upperCase,
+              winner: state3.winner,
+              chat: state3.chat + " "
+            });
+          }
+          ;
+          if (key2 === "ShiftLeft") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              winner: state3.winner,
+              upperCase: !state3.upperCase
+            });
+          }
+          ;
+          if (key2 === "CapsLock") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              winner: state3.winner,
+              upperCase: !state3.upperCase
+            });
+          }
+          ;
+          var $503 = length6(state3.chat) <= 30;
+          if ($503) {
+            var $504 = contains("Key")(key2);
+            if ($504) {
+              return function __do2() {
+                var maybeKey = stripPrefix("Key")(key2);
+                if (maybeKey instanceof Nothing) {
+                  return state3;
+                }
+                ;
+                if (maybeKey instanceof Just) {
+                  if (state3.upperCase) {
+                    return {
+                      actions: state3.actions,
+                      attackedPositions: state3.attackedPositions,
+                      availableMoves: state3.availableMoves,
+                      board: state3.board,
+                      canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
+                      flagPosition: state3.flagPosition,
+                      hand: state3.hand,
+                      lastReceivedMessage: state3.lastReceivedMessage,
+                      messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
+                      playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
+                      score: state3.score,
+                      selectedPiece: state3.selectedPiece,
+                      status: state3.status,
+                      tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
+                      winner: state3.winner,
+                      chat: state3.chat + maybeKey.value0
+                    };
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    chat: state3.chat + toLower(maybeKey.value0)
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 534, column 25 - line 536, column 158): " + [maybeKey.constructor.name]);
+              };
+            }
+            ;
+            var $508 = contains("Digit")(key2);
+            if ($508) {
+              return function __do2() {
+                var maybeKey = stripPrefix("Digit")(key2);
+                if (maybeKey instanceof Nothing) {
+                  return state3;
+                }
+                ;
+                if (maybeKey instanceof Just) {
+                  if (state3.upperCase) {
+                    return {
+                      actions: state3.actions,
+                      attackedPositions: state3.attackedPositions,
+                      availableMoves: state3.availableMoves,
+                      board: state3.board,
+                      canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
+                      flagPosition: state3.flagPosition,
+                      hand: state3.hand,
+                      lastReceivedMessage: state3.lastReceivedMessage,
+                      messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
+                      playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
+                      score: state3.score,
+                      selectedPiece: state3.selectedPiece,
+                      status: state3.status,
+                      tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
+                      winner: state3.winner,
+                      chat: state3.chat + maybeKey.value0
+                    };
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    chat: state3.chat + toLower(maybeKey.value0)
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 539, column 25 - line 541, column 158): " + [maybeKey.constructor.name]);
+              };
+            }
+            ;
+            var $512 = contains("Numpad")(key2);
+            if ($512) {
+              return function __do2() {
+                var maybeKey = stripPrefix("Numpad")(key2);
+                if (maybeKey instanceof Nothing) {
+                  return state3;
+                }
+                ;
+                if (maybeKey instanceof Just) {
+                  if (state3.upperCase) {
+                    return {
+                      actions: state3.actions,
+                      attackedPositions: state3.attackedPositions,
+                      availableMoves: state3.availableMoves,
+                      board: state3.board,
+                      canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
+                      flagPosition: state3.flagPosition,
+                      hand: state3.hand,
+                      lastReceivedMessage: state3.lastReceivedMessage,
+                      messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
+                      playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
+                      score: state3.score,
+                      selectedPiece: state3.selectedPiece,
+                      status: state3.status,
+                      tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
+                      winner: state3.winner,
+                      chat: state3.chat + maybeKey.value0
+                    };
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    chat: state3.chat + toLower(maybeKey.value0)
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 544, column 25 - line 546, column 158): " + [maybeKey.constructor.name]);
+              };
+            }
+            ;
+            return pure4(state3);
+          }
+          ;
+          return pure4(state3);
+        }
+        ;
+        if (state3.changeName) {
+          if (key2 === "Enter") {
+            return function __do2() {
+              send("Name: " + state3.name)();
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                changeName: false,
+                nameChanged: false
+              };
+            };
+          }
+          ;
+          if (key2 === "Backspace") {
+            return function __do2() {
+              var l = length6(state3.name) - 1 | 0;
+              var split2 = splitAt2(l)(state3.name);
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                name: split2.before
+              };
+            };
+          }
+          ;
+          if (key2 === "Space") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              upperCase: state3.upperCase,
+              winner: state3.winner,
+              name: state3.name + " "
+            });
+          }
+          ;
+          if (key2 === "ShiftLeft") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              winner: state3.winner,
+              upperCase: !state3.upperCase
+            });
+          }
+          ;
+          if (key2 === "CapsLock") {
+            return pure4({
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              winner: state3.winner,
+              upperCase: !state3.upperCase
+            });
+          }
+          ;
+          var $517 = length6(state3.name) <= 15;
+          if ($517) {
+            var $518 = contains("Key")(key2);
+            if ($518) {
+              return function __do2() {
+                var maybeKey = stripPrefix("Key")(key2);
+                if (maybeKey instanceof Nothing) {
+                  return state3;
+                }
+                ;
+                if (maybeKey instanceof Just) {
+                  if (state3.upperCase) {
+                    return {
+                      actions: state3.actions,
+                      attackedPositions: state3.attackedPositions,
+                      availableMoves: state3.availableMoves,
+                      board: state3.board,
+                      canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
+                      flagPosition: state3.flagPosition,
+                      hand: state3.hand,
+                      lastReceivedMessage: state3.lastReceivedMessage,
+                      messages: state3.messages,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
+                      playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
+                      score: state3.score,
+                      selectedPiece: state3.selectedPiece,
+                      status: state3.status,
+                      tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
+                      winner: state3.winner,
+                      name: state3.name + maybeKey.value0
+                    };
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    name: state3.name + toLower(maybeKey.value0)
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 564, column 25 - line 566, column 158): " + [maybeKey.constructor.name]);
+              };
+            }
+            ;
+            var $522 = contains("Digit")(key2);
+            if ($522) {
+              return function __do2() {
+                var maybeKey = stripPrefix("Digit")(key2);
+                if (maybeKey instanceof Nothing) {
+                  return state3;
+                }
+                ;
+                if (maybeKey instanceof Just) {
+                  if (state3.upperCase) {
+                    return {
+                      actions: state3.actions,
+                      attackedPositions: state3.attackedPositions,
+                      availableMoves: state3.availableMoves,
+                      board: state3.board,
+                      canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
+                      flagPosition: state3.flagPosition,
+                      hand: state3.hand,
+                      lastReceivedMessage: state3.lastReceivedMessage,
+                      messages: state3.messages,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
+                      playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
+                      score: state3.score,
+                      selectedPiece: state3.selectedPiece,
+                      status: state3.status,
+                      tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
+                      winner: state3.winner,
+                      name: state3.name + maybeKey.value0
+                    };
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    name: state3.name + toLower(maybeKey.value0)
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 569, column 25 - line 571, column 158): " + [maybeKey.constructor.name]);
+              };
+            }
+            ;
+            var $526 = contains("Numpad")(key2);
+            if ($526) {
+              return function __do2() {
+                var maybeKey = stripPrefix("Numpad")(key2);
+                if (maybeKey instanceof Nothing) {
+                  return state3;
+                }
+                ;
+                if (maybeKey instanceof Just) {
+                  if (state3.upperCase) {
+                    return {
+                      actions: state3.actions,
+                      attackedPositions: state3.attackedPositions,
+                      availableMoves: state3.availableMoves,
+                      board: state3.board,
+                      canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
+                      flagPosition: state3.flagPosition,
+                      hand: state3.hand,
+                      lastReceivedMessage: state3.lastReceivedMessage,
+                      messages: state3.messages,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
+                      playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
+                      score: state3.score,
+                      selectedPiece: state3.selectedPiece,
+                      status: state3.status,
+                      tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
+                      winner: state3.winner,
+                      name: state3.name + maybeKey.value0
+                    };
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    name: state3.name + toLower(maybeKey.value0)
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 574, column 25 - line 576, column 158): " + [maybeKey.constructor.name]);
+              };
+            }
+            ;
+            return pure4(state3);
+          }
+          ;
+          return pure4(state3);
+        }
+        ;
+        if (otherwise) {
+          return function __do2() {
+            log2("Pressed: " + key2)();
+            if (key2 === "ShiftLeft") {
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                winner: state3.winner,
+                upperCase: !state3.upperCase
+              };
+            }
+            ;
+            if (key2 === "CapsLock") {
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                winner: state3.winner,
+                upperCase: !state3.upperCase
+              };
+            }
+            ;
             if (key2 === "KeyR") {
-              return send("Request New Match")();
+              send("Request: New Match")();
+              return state3;
+            }
+            ;
+            if (key2 === "Enter") {
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                chatState: true
+              };
+            }
+            ;
+            if (key2 === "KeyC") {
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                changeName: true
+              };
             }
             ;
             if (key2 === "KeyY") {
-              return send("Request Accept")();
+              send("Request: Accept")();
+              return state3;
             }
             ;
             if (key2 === "KeyN") {
-              return send("Request Decline")();
+              send("Request: Decline")();
+              return state3;
             }
             ;
-            return unit;
-          })();
-          return state3;
-        };
+            return state3;
+          };
+        }
+        ;
+        throw new Error("Failed pattern match at Main (line 514, column 1 - line 514, column 80): " + [send.constructor.name, key2.constructor.name, state3.constructor.name]);
       };
     };
   };
@@ -4036,12 +5439,49 @@
   };
   var messageFilter = function(message2) {
     return function(message$prime) {
-      var $451 = show1(message2) === show1(message$prime);
-      if ($451) {
+      var $536 = show1(message2) === show1(message$prime);
+      if ($536) {
         return false;
       }
       ;
       return true;
+    };
+  };
+  var onMessage2 = function(v) {
+    return function(message2) {
+      return function(state3) {
+        return function __do2() {
+          log2("Received message: " + show1(message2))();
+          return {
+            actions: state3.actions,
+            attackedPositions: state3.attackedPositions,
+            availableMoves: state3.availableMoves,
+            board: state3.board,
+            canSend: state3.canSend,
+            changeName: state3.changeName,
+            chat: state3.chat,
+            chatLog: state3.chatLog,
+            chatState: state3.chatState,
+            flagPosition: state3.flagPosition,
+            hand: state3.hand,
+            name: state3.name,
+            nameChanged: state3.nameChanged,
+            opponentName: state3.opponentName,
+            playerId: state3.playerId,
+            previousMove: state3.previousMove,
+            request: state3.request,
+            score: state3.score,
+            selectedPiece: state3.selectedPiece,
+            status: state3.status,
+            tickCount: state3.tickCount,
+            turn: state3.turn,
+            upperCase: state3.upperCase,
+            winner: state3.winner,
+            lastReceivedMessage: new Just(message2),
+            messages: append13(filter(messageFilter(message2))(state3.messages))([message2])
+          };
+        };
+      };
     };
   };
   var isOpponent = function(piece) {
@@ -4053,20 +5493,20 @@
       return piece.value0.opponent;
     }
     ;
-    throw new Error("Failed pattern match at Main (line 750, column 5 - line 752, column 29): " + [piece.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1043, column 5 - line 1045, column 29): " + [piece.constructor.name]);
   };
   var movePiece = function(pos1) {
     return function(pos2) {
       return function(state3) {
         var shouldUpgrade = function(opponent) {
           if (pos2 instanceof Grid) {
-            var $456 = opponent && pos2.value0.r > 9;
-            if ($456) {
+            var $541 = opponent && pos2.value0.r > 9;
+            if ($541) {
               return true;
             }
             ;
-            var $457 = !opponent && pos2.value0.r < 3;
-            if ($457) {
+            var $542 = !opponent && pos2.value0.r < 3;
+            if ($542) {
               return true;
             }
             ;
@@ -4077,8 +5517,8 @@
         };
         var checkHand = function(piece) {
           if (piece instanceof Hand) {
-            var $462 = (piece.value0.count - 1 | 0) === 0;
-            if ($462) {
+            var $547 = (piece.value0.count - 1 | 0) === 0;
+            if ($547) {
               return Nothing.value;
             }
             ;
@@ -4100,7 +5540,7 @@
           }
           ;
           if (v1 instanceof Just) {
-            return function __do() {
+            return function __do2() {
               var piece = function() {
                 if (v1.value0 instanceof Hand) {
                   return new Board({
@@ -4114,22 +5554,35 @@
               }();
               var hand = update2(checkHand)(pos1)(state3.hand);
               var board = insert3(pos2)(piece)(state3.board);
-              var $468 = isOpponent(v1.value0);
-              if ($468) {
+              var $553 = isOpponent(v1.value0);
+              if ($553) {
                 return {
                   attackedPositions: state3.attackedPositions,
                   availableMoves: state3.availableMoves,
                   canSend: state3.canSend,
+                  changeName: state3.changeName,
+                  chat: state3.chat,
+                  chatLog: state3.chatLog,
+                  chatState: state3.chatState,
                   flagPosition: state3.flagPosition,
                   lastReceivedMessage: state3.lastReceivedMessage,
                   messages: state3.messages,
+                  name: state3.name,
+                  nameChanged: state3.nameChanged,
+                  opponentName: state3.opponentName,
                   playerId: state3.playerId,
+                  request: state3.request,
                   score: state3.score,
                   selectedPiece: state3.selectedPiece,
-                  state: state3.state,
+                  status: state3.status,
                   tickCount: state3.tickCount,
                   turn: state3.turn,
+                  upperCase: state3.upperCase,
                   winner: state3.winner,
+                  previousMove: new Just({
+                    from: pos1,
+                    to: pos2
+                  }),
                   actions: state3.actions + 1 | 0,
                   board,
                   hand
@@ -4140,15 +5593,28 @@
                 attackedPositions: state3.attackedPositions,
                 availableMoves: state3.availableMoves,
                 canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
                 flagPosition: state3.flagPosition,
                 lastReceivedMessage: state3.lastReceivedMessage,
                 messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
                 playerId: state3.playerId,
+                request: state3.request,
                 score: state3.score,
-                state: state3.state,
+                status: state3.status,
                 tickCount: state3.tickCount,
                 turn: state3.turn,
+                upperCase: state3.upperCase,
                 winner: state3.winner,
+                previousMove: new Just({
+                  from: pos1,
+                  to: pos2
+                }),
                 selectedPiece: new Just(piece),
                 actions: state3.actions - 1 | 0,
                 board,
@@ -4157,20 +5623,20 @@
             };
           }
           ;
-          throw new Error("Failed pattern match at Main (line 951, column 20 - line 960, column 122): " + [v1.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 1257, column 20 - line 1266, column 168): " + [v1.constructor.name]);
         }
         ;
         if (v instanceof Just) {
-          return function __do() {
+          return function __do2() {
             var piece = function() {
               if (v.value0 instanceof Board) {
                 if (v.value0.value0.type instanceof Human) {
-                  var $472 = shouldUpgrade(isOpponent(v.value0));
-                  if ($472) {
+                  var $557 = shouldUpgrade(isOpponent(v.value0));
+                  if ($557) {
                     return new Board({
                       opponent: v.value0.value0.opponent,
                       pos: pos2,
-                      type: HumanUpgraded.value
+                      type: Warrior.value
                     });
                   }
                   ;
@@ -4182,12 +5648,12 @@
                 }
                 ;
                 if (v.value0.value0.type instanceof Goblin) {
-                  var $473 = shouldUpgrade(isOpponent(v.value0));
-                  if ($473) {
+                  var $558 = shouldUpgrade(isOpponent(v.value0));
+                  if ($558) {
                     return new Board({
                       opponent: v.value0.value0.opponent,
                       pos: pos2,
-                      type: GoblinUpgraded.value
+                      type: Hobgoblin.value
                     });
                   }
                   ;
@@ -4209,23 +5675,36 @@
             }();
             var board$prime = $$delete2(pos1)(state3.board);
             var board = insert3(pos2)(piece)(board$prime);
-            var $475 = isOpponent(v.value0);
-            if ($475) {
+            var $560 = isOpponent(v.value0);
+            if ($560) {
               return {
                 attackedPositions: state3.attackedPositions,
                 availableMoves: state3.availableMoves,
                 canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
                 flagPosition: state3.flagPosition,
                 hand: state3.hand,
                 lastReceivedMessage: state3.lastReceivedMessage,
                 messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
                 playerId: state3.playerId,
+                request: state3.request,
                 score: state3.score,
                 selectedPiece: state3.selectedPiece,
-                state: state3.state,
+                status: state3.status,
                 tickCount: state3.tickCount,
                 turn: state3.turn,
+                upperCase: state3.upperCase,
                 winner: state3.winner,
+                previousMove: new Just({
+                  from: pos1,
+                  to: pos2
+                }),
                 actions: state3.actions + 1 | 0,
                 board
               };
@@ -4235,16 +5714,29 @@
               attackedPositions: state3.attackedPositions,
               availableMoves: state3.availableMoves,
               canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
               flagPosition: state3.flagPosition,
               hand: state3.hand,
               lastReceivedMessage: state3.lastReceivedMessage,
               messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
               playerId: state3.playerId,
+              request: state3.request,
               score: state3.score,
-              state: state3.state,
+              status: state3.status,
               tickCount: state3.tickCount,
               turn: state3.turn,
+              upperCase: state3.upperCase,
               winner: state3.winner,
+              previousMove: new Just({
+                from: pos1,
+                to: pos2
+              }),
               selectedPiece: new Just(piece),
               actions: state3.actions - 1 | 0,
               board
@@ -4252,7 +5744,7 @@
           };
         }
         ;
-        throw new Error("Failed pattern match at Main (line 950, column 5 - line 971, column 108): " + [v.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 1256, column 5 - line 1277, column 154): " + [v.constructor.name]);
       };
     };
   };
@@ -4269,7 +5761,7 @@
       return piece.value0.type;
     }
     ;
-    throw new Error("Failed pattern match at Main (line 744, column 5 - line 746, column 25): " + [piece.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1032, column 5 - line 1034, column 25): " + [piece.constructor.name]);
   };
   var getPos = function(piece) {
     if (piece instanceof Board) {
@@ -4280,12 +5772,12 @@
       return piece.value0.pos;
     }
     ;
-    throw new Error("Failed pattern match at Main (line 738, column 5 - line 740, column 24): " + [piece.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1026, column 5 - line 1028, column 24): " + [piece.constructor.name]);
   };
   var isOccupied = function(pos) {
     return function(piece) {
-      var $483 = eq7(getPos(piece))(pos);
-      if ($483) {
+      var $568 = eq8(getPos(piece))(pos);
+      if ($568) {
         return true;
       }
       ;
@@ -4296,6 +5788,86 @@
     return function(piece$prime) {
       return insert3(getPos(piece$prime))(piece$prime)(mapped);
     };
+  };
+  var getPieces = function(pieces) {
+    return function(unitType) {
+      return function(opponent) {
+        return filter(function(p) {
+          var $569 = isOpponent(p) === opponent;
+          if ($569) {
+            return true;
+          }
+          ;
+          return false;
+        })(filter(function(p) {
+          var $570 = eq6(getType(p))(unitType);
+          if ($570) {
+            return true;
+          }
+          ;
+          return false;
+        })(foldl3(append13)([])(mapFlipped2(pieces)(pieceToArray))));
+      };
+    };
+  };
+  var getName = function(n) {
+    if (n === 0) {
+      return "King";
+    }
+    ;
+    if (n === 1) {
+      return "Queen";
+    }
+    ;
+    if (n === 2) {
+      return "Flag";
+    }
+    ;
+    if (n === 3) {
+      return "Prince";
+    }
+    ;
+    if (n === 4) {
+      return "Wizard";
+    }
+    ;
+    if (n === 5) {
+      return "Dragon";
+    }
+    ;
+    if (n === 6) {
+      return "Orc";
+    }
+    ;
+    if (n === 7) {
+      return "Dwarf";
+    }
+    ;
+    if (n === 8) {
+      return "Elf Ranged";
+    }
+    ;
+    if (n === 9) {
+      return "Elf Melee";
+    }
+    ;
+    if (n === 10) {
+      return "Human";
+    }
+    ;
+    if (n === 11) {
+      return "Goblin";
+    }
+    ;
+    if (n === 12) {
+      return "Warrior";
+    }
+    ;
+    if (n === 13) {
+      return "Hobgoblin";
+    }
+    ;
+    return "Anonymous";
   };
   var fps = 60;
   var cols2 = 16;
@@ -4311,7 +5883,7 @@
       return new OnHand(position2.value0, position2.value1);
     }
     ;
-    throw new Error("Failed pattern match at Main (line 726, column 5 - line 728, column 33): " + [position2.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1014, column 5 - line 1016, column 33): " + [position2.constructor.name]);
   };
   var flipPiece = function(piece) {
     if (piece instanceof Board) {
@@ -4331,7 +5903,7 @@
       });
     }
     ;
-    throw new Error("Failed pattern match at Main (line 732, column 5 - line 734, column 56): " + [piece.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1020, column 5 - line 1022, column 56): " + [piece.constructor.name]);
   };
   var defaultBoard = /* @__PURE__ */ function() {
     var ownedPieces = [new Board({
@@ -4587,18 +6159,78 @@
       opponent: false,
       type: Goblin.value
     })];
-    var opponentPieces = mapFlipped2(mapFlipped2(ownedPieces)(toOpponent))(flipPiece);
+    var opponentPieces = mapFlipped1(mapFlipped1(ownedPieces)(toOpponent))(flipPiece);
     var allPieces = append13(ownedPieces)(opponentPieces);
-    return foldl3(pieceToMap)(empty3)(allPieces);
+    return foldl12(pieceToMap)(empty3)(allPieces);
   }();
-  var initialState = /* @__PURE__ */ function() {
-    return pure4({
+  var defaultNewMatch = function(state3) {
+    var turn = function() {
+      var $581 = show22(state3.playerId) === "(Just Player1)";
+      if ($581) {
+        return true;
+      }
+      ;
+      return false;
+    }();
+    var actions = function() {
+      var $582 = show22(state3.playerId) === "(Just Player1)";
+      if ($582) {
+        return 3;
+      }
+      ;
+      return -3 | 0;
+    }();
+    return {
+      tickCount: state3.tickCount,
+      name: state3.name,
+      chat: state3.chat,
+      upperCase: state3.upperCase,
+      chatLog: state3.chatLog,
+      chatState: state3.chatState,
+      opponentName: state3.opponentName,
+      changeName: state3.changeName,
+      nameChanged: state3.nameChanged,
+      canSend: state3.canSend,
+      score: state3.score,
+      playerId: state3.playerId,
+      availableMoves: state3.availableMoves,
+      flagPosition: state3.flagPosition,
+      attackedPositions: state3.attackedPositions,
+      board: defaultBoard,
+      hand: empty3,
+      actions,
+      winner: Nothing.value,
+      messages: [],
+      turn,
+      status: InGame.value,
+      selectedPiece: Nothing.value,
+      previousMove: Nothing.value,
+      request: Nothing.value,
+      lastReceivedMessage: Nothing.value
+    };
+  };
+  var initialState = function __do() {
+    var rand1 = randomInt(0)(13)();
+    var name15 = getName(rand1);
+    return {
       tickCount: 0,
       actions: -3 | 0,
       canSend: true,
-      score: 0,
+      name: name15,
+      opponentName: "",
+      chat: "",
+      chatLog: [],
+      changeName: false,
+      nameChanged: false,
+      upperCase: false,
+      chatState: false,
+      score: {
+        me: 0,
+        opponent: 0
+      },
       turn: false,
       playerId: Nothing.value,
+      previousMove: Nothing.value,
       board: defaultBoard,
       hand: empty3,
       selectedPiece: Nothing.value,
@@ -4608,12 +6240,13 @@
         r: 11,
         c: 8
       }),
-      state: Waiting.value,
+      status: NotConnected.value,
       winner: Nothing.value,
       messages: [],
+      request: Nothing.value,
       lastReceivedMessage: Nothing.value
-    });
-  }();
+    };
+  };
   var getScreenPos = function(piecePos) {
     var y = function() {
       if (piecePos instanceof Grid) {
@@ -4628,7 +6261,7 @@
         return gridSize * 10 + gridSize * toNumber(floor2(toNumber(piecePos.value1) / 4));
       }
       ;
-      throw new Error("Failed pattern match at Main (line 798, column 9 - line 802, column 94): " + [piecePos.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1091, column 9 - line 1095, column 94): " + [piecePos.constructor.name]);
     }();
     var x = function() {
       if (piecePos instanceof Grid) {
@@ -4636,10 +6269,10 @@
       }
       ;
       if (piecePos instanceof OnHand) {
-        return gridSize * toNumber(cols2) + gridSize * toNumber(mod2(piecePos.value1)(4));
+        return gridSize * toNumber(cols2) + gridSize * toNumber(mod3(piecePos.value1)(4));
       }
       ;
-      throw new Error("Failed pattern match at Main (line 795, column 9 - line 797, column 93): " + [piecePos.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1088, column 9 - line 1090, column 93): " + [piecePos.constructor.name]);
     }();
     return {
       x,
@@ -4652,20 +6285,20 @@
     }
     ;
     if (pos instanceof Grid) {
-      var $509 = pos.value0.r < 0 || (pos.value0.r >= rows4 || (pos.value0.c < 0 || pos.value0.c >= cols2));
-      if ($509) {
+      var $599 = pos.value0.r < 0 || (pos.value0.r >= rows4 || (pos.value0.c < 0 || pos.value0.c >= cols2));
+      if ($599) {
         return true;
       }
       ;
       return false;
     }
     ;
-    throw new Error("Failed pattern match at Main (line 779, column 5 - line 783, column 23): " + [pos.constructor.name]);
+    throw new Error("Failed pattern match at Main (line 1072, column 5 - line 1076, column 23): " + [pos.constructor.name]);
   };
   var isValid = function(board) {
     return function(pos) {
-      var $511 = any3(isOccupied(pos))(board) || isOutOfBounds(pos);
-      if ($511) {
+      var $601 = any3(isOccupied(pos))(board) || isOutOfBounds(pos);
+      if ($601) {
         return false;
       }
       ;
@@ -4673,7 +6306,7 @@
     };
   };
   var width8 = /* @__PURE__ */ function() {
-    return gridSize * (toNumber(cols2) + 4);
+    return gridSize * (toNumber(cols2) + 10);
   }();
   var colors = {
     background: "#1D0F02",
@@ -4687,416 +6320,6 @@
     selected: "#358230",
     player1: "#42A5F1",
     player2: "#FF3D43"
-  };
-  var onRender = function(images2) {
-    return function(ctx) {
-      return function(state3) {
-        var renderWaiting = function() {
-          var renderWaitingText = function() {
-            var y = height8 / 2;
-            var x = width8 / 2;
-            var text5 = function() {
-              if (state3.playerId instanceof Nothing) {
-                return "Not Connected to a Server";
-              }
-              ;
-              if (state3.playerId instanceof Just) {
-                var $513 = mod2(state3.tickCount)(60) > 40;
-                if ($513) {
-                  return "Loading...";
-                }
-                ;
-                var $514 = mod2(state3.tickCount)(60) > 20;
-                if ($514) {
-                  return "Loading..";
-                }
-                ;
-                return "Loading.";
-              }
-              ;
-              throw new Error("Failed pattern match at Main (line 453, column 17 - line 458, column 40): " + [state3.playerId.constructor.name]);
-            }();
-            return drawText(ctx)({
-              x,
-              y,
-              text: text5,
-              color: colors["default"],
-              font: "courier",
-              size: 36
-            });
-          }();
-          var renderPlayerText = function() {
-            var y = height8 / 2 + 0.25 * height8;
-            var x = width8 / 2;
-            var text5 = function() {
-              if (state3.playerId instanceof Nothing) {
-                return "";
-              }
-              ;
-              if (state3.playerId instanceof Just) {
-                var v = show22(state3.playerId.value0);
-                if (v === "Player1") {
-                  return "You are player 1.";
-                }
-                ;
-                if (v === "Player2") {
-                  return "You are player 2.";
-                }
-                ;
-                return "Unknown PlayerId";
-              }
-              ;
-              throw new Error("Failed pattern match at Main (line 468, column 17 - line 474, column 52): " + [state3.playerId.constructor.name]);
-            }();
-            return drawText(ctx)({
-              x,
-              y,
-              text: text5,
-              color: colors["default"],
-              font: "courier",
-              size: 24
-            });
-          }();
-          return function __do() {
-            clearCanvas(ctx)({
-              width: width8,
-              height: height8,
-              color: colors.background
-            })();
-            renderWaitingText();
-            return renderPlayerText();
-          };
-        }();
-        var renderSelectedPiece = function() {
-          if (state3.selectedPiece instanceof Nothing) {
-            return pure4(unit);
-          }
-          ;
-          if (state3.selectedPiece instanceof Just) {
-            var piecePos = getPos(state3.selectedPiece.value0);
-            var screenPos = getScreenPos(piecePos);
-            return drawRect(ctx)({
-              x: screenPos.x,
-              y: screenPos.y,
-              width: gridSize,
-              height: gridSize,
-              color: colors.selected
-            });
-          }
-          ;
-          throw new Error("Failed pattern match at Main (line 547, column 9 - line 555, column 32): " + [state3.selectedPiece.constructor.name]);
-        }();
-        var renderPiece = function(effect) {
-          return function(piece) {
-            var playerId = function() {
-              var $521 = show32(state3.playerId) === "(Just Player1)";
-              if ($521) {
-                return "1";
-              }
-              ;
-              var $522 = show32(state3.playerId) === "(Just Player2)";
-              if ($522) {
-                return "2";
-              }
-              ;
-              return "";
-            }();
-            var pieceTeam = isOpponent(piece);
-            var piecePos = getPos(piece);
-            var screenPos = getScreenPos(piecePos);
-            var xr = screenPos.x + gridSize / 2;
-            var yr = screenPos.y + gridSize / 2;
-            var imagePath = function() {
-              var v = getType(piece);
-              if (v instanceof Flag) {
-                var $524 = pieceTeam && playerId === "2";
-                if ($524) {
-                  return "images/Flag1.png";
-                }
-                ;
-                var $525 = pieceTeam && playerId === "1";
-                if ($525) {
-                  return "images/Flag2.png";
-                }
-                ;
-                return "images/Flag" + (playerId + ".png");
-              }
-              ;
-              return "images/" + (show6(getType(piece)) + ".png");
-            }();
-            var color = function() {
-              if (state3.playerId instanceof Nothing) {
-                return colors["default"];
-              }
-              ;
-              if (state3.playerId instanceof Just) {
-                var v = show22(state3.playerId.value0);
-                if (v === "Player1") {
-                  if (pieceTeam) {
-                    return colors.player2;
-                  }
-                  ;
-                  return colors.player1;
-                }
-                ;
-                if (v === "Player2") {
-                  if (pieceTeam) {
-                    return colors.player1;
-                  }
-                  ;
-                  return colors.player2;
-                }
-                ;
-                return colors["default"];
-              }
-              ;
-              throw new Error("Failed pattern match at Main (line 610, column 13 - line 616, column 44): " + [state3.playerId.constructor.name]);
-            }();
-            return function __do() {
-              effect();
-              (function() {
-                var v = getType(piece);
-                if (v instanceof Flag) {
-                  return unit;
-                }
-                ;
-                return drawCircle(ctx)({
-                  x: xr,
-                  y: yr + 3,
-                  radius: 12,
-                  color
-                })();
-              })();
-              (function() {
-                var v = lookup2(imagePath)(images2);
-                if (v instanceof Nothing) {
-                  return unit;
-                }
-                ;
-                if (v instanceof Just) {
-                  return drawImageScaled(ctx)(v.value0)({
-                    x: screenPos.x,
-                    y: screenPos.y,
-                    width: gridSize,
-                    height: gridSize
-                  })();
-                }
-                ;
-                throw new Error("Failed pattern match at Main (line 588, column 9 - line 590, column 84): " + [v.constructor.name]);
-              })();
-              if (piece instanceof Board) {
-                return unit;
-              }
-              ;
-              if (piece instanceof Hand) {
-                return drawText(ctx)({
-                  x: screenPos.x + gridSize * 0.8,
-                  y: screenPos.y + gridSize,
-                  size: 14,
-                  color: colors["default"],
-                  font: "courier",
-                  text: show4(piece.value0.count)
-                })();
-              }
-              ;
-              throw new Error("Failed pattern match at Main (line 591, column 9 - line 593, column 150): " + [piece.constructor.name]);
-            };
-          };
-        };
-        var renderPieces = function __do() {
-          foldl12(renderPiece)(pure4(unit))(values(state3.board))();
-          return foldl12(renderPiece)(pure4(unit))(values(state3.hand))();
-        };
-        var renderMove = function(color) {
-          return function(effect) {
-            return function(piecePos) {
-              var screenPos = getScreenPos(piecePos);
-              var x = screenPos.x + gridSize / 2;
-              var y = screenPos.y + gridSize / 2;
-              var radius = gridSize / 8;
-              return function __do() {
-                effect();
-                return drawCircle(ctx)({
-                  x,
-                  y,
-                  radius,
-                  color
-                })();
-              };
-            };
-          };
-        };
-        var renderMessage = function() {
-          var y = height8 / 2;
-          var x = gridSize * (toNumber(cols2) + 2);
-          var text5 = function() {
-            if (state3.state instanceof Waiting) {
-              return "";
-            }
-            ;
-            if (state3.state instanceof InGame) {
-              if (state3.turn) {
-                return "Your turn! " + (show4(3 - state3.actions | 0) + "/3");
-              }
-              ;
-              return "Opponent's turn! " + (show4(3 + state3.actions | 0) + "/3");
-            }
-            ;
-            if (state3.state instanceof End) {
-              var $539 = eq3(state3.winner)(new Just(true));
-              if ($539) {
-                return "You win!";
-              }
-              ;
-              return "You lose!";
-            }
-            ;
-            throw new Error("Failed pattern match at Main (line 502, column 16 - line 506, column 81): " + [state3.state.constructor.name]);
-          }();
-          var color = function() {
-            if (state3.state instanceof End) {
-              var $541 = eq3(state3.winner)(new Just(true));
-              if ($541) {
-                return colors.available;
-              }
-              ;
-              return colors.attacked;
-            }
-            ;
-            return "white";
-          }();
-          return function __do() {
-            drawText(ctx)({
-              x,
-              y: y - 16,
-              color,
-              font: "courier",
-              size: 14,
-              text: "The Great War"
-            })();
-            drawText(ctx)({
-              x,
-              y: y - 4,
-              color,
-              font: "courier",
-              size: 14,
-              text: "of the Ancients"
-            })();
-            return drawText(ctx)({
-              x,
-              y: y + 16,
-              color,
-              font: "courier",
-              size: 14,
-              text: text5
-            })();
-          };
-        }();
-        var renderGridHand = function(row) {
-          return function(effect) {
-            return function(col) {
-              return function __do() {
-                effect();
-                var y = gridSize * toNumber(row) - gridSize;
-                var x = gridSize * toNumber(col) - gridSize;
-                var color = function() {
-                  var $542 = mod2(row + col | 0)(2) === 0;
-                  if ($542) {
-                    return colors.hand1;
-                  }
-                  ;
-                  return colors.hand2;
-                }();
-                return drawRect(ctx)({
-                  x,
-                  y,
-                  width: gridSize,
-                  height: gridSize,
-                  color
-                })();
-              };
-            };
-          };
-        };
-        var renderRowHand = function(effect) {
-          return function(row) {
-            return foldl3(renderGridHand(row))(effect)(range2(cols2 + 1 | 0)(cols2 + 4 | 0));
-          };
-        };
-        var renderHand = function() {
-          var y = gridSize * 10 + 0.8;
-          var x = gridSize * 16 + 0.8;
-          return function __do() {
-            foldl3(renderRowHand)(pure4(unit))(append13(range2(1)(3))(range2(11)(rows4)))();
-            drawRectOutline(ctx)({
-              x,
-              y: 0,
-              width: gridSize * 4 - 1.6,
-              height: gridSize * 3,
-              color: "#1E292A"
-            })();
-            return drawRectOutline(ctx)({
-              x,
-              y,
-              width: gridSize * 4 - 1.6,
-              height: gridSize * 3,
-              color: "#1E292A"
-            })();
-          };
-        }();
-        var renderGrid = function(row) {
-          return function(effect) {
-            return function(col) {
-              return function __do() {
-                effect();
-                var y = gridSize * toNumber(row) - gridSize;
-                var x = gridSize * toNumber(col) - gridSize;
-                var color = function() {
-                  var $543 = mod2(row + col | 0)(2) === 0;
-                  if ($543) {
-                    return colors.tile1;
-                  }
-                  ;
-                  return colors.tile2;
-                }();
-                return drawRect(ctx)({
-                  x,
-                  y,
-                  width: gridSize,
-                  height: gridSize,
-                  color
-                })();
-              };
-            };
-          };
-        };
-        var renderRow = function(effect) {
-          return function(row) {
-            return foldl3(renderGrid(row))(effect)(range2(1)(cols2));
-          };
-        };
-        var renderBoard = foldl3(renderRow)(pure4(unit))(range2(1)(rows4));
-        var renderAvailableMoves = foldl3(renderMove(colors.available))(pure4(unit))(state3.availableMoves);
-        var renderGame = function __do() {
-          clearCanvas(ctx)({
-            width: width8,
-            height: height8,
-            color: colors.background
-          })();
-          renderBoard();
-          renderHand();
-          renderMessage();
-          renderSelectedPiece();
-          renderPieces();
-          return renderAvailableMoves();
-        };
-        if (state3.state instanceof Waiting) {
-          return renderWaiting;
-        }
-        ;
-        return renderGame;
-      };
-    };
   };
   var changeType = function(piece) {
     return function(newType) {
@@ -5117,7 +6340,7 @@
         });
       }
       ;
-      throw new Error("Failed pattern match at Main (line 764, column 28 - line 766, column 42): " + [piece.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1057, column 28 - line 1059, column 42): " + [piece.constructor.name]);
     };
   };
   var canCapture = function(board) {
@@ -5144,7 +6367,7 @@
         return isOpponent(v.value0);
       }
       ;
-      throw new Error("Failed pattern match at Main (line 806, column 5 - line 813, column 38): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Main (line 1099, column 5 - line 1106, column 38): " + [v.constructor.name]);
     };
   };
   var filterSettings = function(board) {
@@ -5152,18 +6375,18 @@
       return function(b) {
         return function(c) {
           return function(pos) {
-            var $551 = isOutOfBounds(pos);
-            if ($551) {
+            var $608 = isOutOfBounds(pos);
+            if ($608) {
               return false;
             }
             ;
-            var $552 = canCapture(board)(pos);
-            if ($552) {
+            var $609 = canCapture(board)(pos);
+            if ($609) {
               return a;
             }
             ;
-            var $553 = any3(isOccupied(pos))(board);
-            if ($553) {
+            var $610 = any3(isOccupied(pos))(board);
+            if ($610) {
               return b;
             }
             ;
@@ -5174,36 +6397,22 @@
     };
   };
   var getImportantPiecesMoves = function(board) {
-    return function(includeFlag) {
-      return function(includeOpponent) {
+    return function(unitTypes) {
+      return function(getAll) {
         return function(attackedPositions) {
           var isImportantPiece = function(opponent) {
             return function(piece) {
-              var $554 = isOpponent(piece) === opponent;
-              if ($554) {
-                if (includeFlag) {
-                  var v = getType(piece);
-                  if (v instanceof King) {
-                    return true;
-                  }
-                  ;
-                  if (v instanceof Queen) {
-                    return true;
-                  }
-                  ;
-                  if (v instanceof Flag) {
+              var $611 = isOpponent(piece) === opponent;
+              if ($611) {
+                var $613 = any2(function(u) {
+                  var $612 = eq6(u)(getType(piece));
+                  if ($612) {
                     return true;
                   }
                   ;
                   return false;
-                }
-                ;
-                var v = getType(piece);
-                if (v instanceof King) {
-                  return true;
-                }
-                ;
-                if (v instanceof Queen) {
+                })(unitTypes);
+                if ($613) {
                   return true;
                 }
                 ;
@@ -5213,17 +6422,25 @@
               return false;
             };
           };
-          var alliedPieces = mapFlipped2(filter(not1(isOpponent))(foldl22(append13)([])(mapFlipped1(board)(pieceToArray))))(toOpponent);
-          var alliedImportantPieces = foldl3(append13)([])(mapFlipped2(filter(isImportantPiece(false))(foldl22(append13)([])(mapFlipped1(board)(pieceToArray))))(getAvailableMoves(board)(attackedPositions)));
-          var allPieces = mapFlipped2(foldl22(append13)([])(mapFlipped1(board)(pieceToArray)))(toOpponent);
-          var board$prime = foldl3(pieceToMap)(empty3)(allPieces);
-          var attackedPositions$prime = foldl3(append13)([])(mapFlipped2(alliedPieces)(getAvailableMoves(board$prime)([])));
-          var opponentImportantPieces = foldl3(append13)([])(mapFlipped2(mapFlipped2(filter(isImportantPiece(true))(foldl22(append13)([])(mapFlipped1(board)(pieceToArray))))(toAllied))(getAvailableMoves(board$prime)(attackedPositions$prime)));
-          if (includeOpponent) {
+          var alliedPieces = mapFlipped1(filter(not1(isOpponent))(foldl3(append13)([])(mapFlipped2(board)(pieceToArray))))(toOpponent);
+          var alliedImportantPieces = foldl12(append13)([])(mapFlipped1(filter(isImportantPiece(false))(foldl3(append13)([])(mapFlipped2(board)(pieceToArray))))(getAvailableMoves(board)(attackedPositions)));
+          var allPieces = mapFlipped1(foldl3(append13)([])(mapFlipped2(board)(pieceToArray)))(toOpponent);
+          var board$prime = foldl12(pieceToMap)(empty3)(allPieces);
+          var attackedPositions$prime = foldl12(append13)([])(mapFlipped1(alliedPieces)(getAvailableMoves(board$prime)([])));
+          var opponentImportantPieces = foldl12(append13)([])(mapFlipped1(mapFlipped1(filter(isImportantPiece(true))(foldl3(append13)([])(mapFlipped2(board)(pieceToArray))))(toAllied))(getAvailableMoves(board$prime)(attackedPositions$prime)));
+          if (getAll instanceof Nothing) {
             return append13(alliedImportantPieces)(opponentImportantPieces);
           }
           ;
-          return alliedImportantPieces;
+          if (getAll instanceof Just && getAll.value0) {
+            return opponentImportantPieces;
+          }
+          ;
+          if (getAll instanceof Just && !getAll.value0) {
+            return alliedImportantPieces;
+          }
+          ;
+          throw new Error("Failed pattern match at Main (line 1126, column 68 - line 1129, column 40): " + [getAll.constructor.name]);
         };
       };
     };
@@ -5242,21 +6459,21 @@
             };
           };
           var rowPos = function(r) {
-            return foldl3(append13)([])(map5(rowColPos(r))(range2(0)(cols2 - 1 | 0)));
+            return foldl12(append13)([])(map6(rowColPos(r))(range2(0)(cols2 - 1 | 0)));
           };
           var hindersMove = function(moves) {
             return function(dropPos) {
-              var $560 = any2(function(x) {
-                return eq7(x)(dropPos);
+              var $618 = any2(function(x) {
+                return eq8(x)(dropPos);
               })(moves);
-              if ($560) {
+              if ($618) {
                 return false;
               }
               ;
               return true;
             };
           };
-          var makeDropMoves = filter(hindersMove(getImportantPiecesMoves(board)(true)(true)(attackedPositions)))(filter(isValid(board))(foldl3(append13)([])(mapFlipped2(range2(3)(rows4 - 1 | 0))(rowPos))));
+          var makeDropMoves = filter(hindersMove(getImportantPiecesMoves(board)([King.value, Queen.value, Flag.value])(Nothing.value)(attackedPositions)))(filter(isValid(board))(foldl12(append13)([])(mapFlipped1(range2(3)(rows4 - 1 | 0))(rowPos))));
           if (v.value0) {
             return [];
           }
@@ -5279,17 +6496,17 @@
                     function $tco_loop(capture, max6, movement, moves, pos) {
                       var move = moveType(movement)(pos);
                       var capturePos = function() {
-                        var $564 = canCapture(board)(pos);
-                        if ($564) {
+                        var $622 = canCapture(board)(pos);
+                        if ($622) {
                           return [pos];
                         }
                         ;
                         return [];
                       }();
-                      var $565 = max6 > 0;
-                      if ($565) {
-                        var $566 = isValid(board)(pos);
-                        if ($566) {
+                      var $623 = max6 > 0;
+                      if ($623) {
+                        var $624 = isValid(board)(pos);
+                        if ($624) {
                           $tco_var_capture = capture;
                           $tco_var_max = max6 - 1 | 0;
                           $tco_var_movement = movement;
@@ -5354,8 +6571,8 @@
                 c: v.value0.c - 1 | 0
               })];
               var capturePos = function(pos) {
-                var $568 = canCapture(board)(pos);
-                if ($568) {
+                var $626 = canCapture(board)(pos);
+                if ($626) {
                   return [pos];
                 }
                 ;
@@ -5394,7 +6611,7 @@
                 ;
                 return [];
               }();
-              return foldl3(append13)([])(map5(capturePos)(moves));
+              return foldl12(append13)([])(map6(capturePos)(moves));
             };
           };
           var line = function(capture) {
@@ -5443,8 +6660,8 @@
           };
           var isAttacked = function(pos) {
             return function(atk) {
-              var $570 = eq7(pos)(atk);
-              if ($570) {
+              var $628 = eq8(pos)(atk);
+              if ($628) {
                 return true;
               }
               ;
@@ -5489,19 +6706,19 @@
                 }
                 ;
                 if (movement === 1) {
-                  return filter(settings)(foldl3(append13)([])(map5(steady(true)(size3)(0)([]))(forward2)));
+                  return filter(settings)(foldl12(append13)([])(map6(steady(true)(size3)(0)([]))(forward2)));
                 }
                 ;
                 if (movement === 2) {
-                  return filter(settings)(foldl3(append13)([])(map5(steady(true)(size3)(1)([]))(backward)));
+                  return filter(settings)(foldl12(append13)([])(map6(steady(true)(size3)(1)([]))(backward)));
                 }
                 ;
                 if (movement === 3) {
-                  return filter(settings)(foldl3(append13)([])(map5(steady(true)(size3)(2)([]))(leftSide)));
+                  return filter(settings)(foldl12(append13)([])(map6(steady(true)(size3)(2)([]))(leftSide)));
                 }
                 ;
                 if (movement === 4) {
-                  return filter(settings)(foldl3(append13)([])(map5(steady(true)(size3)(3)([]))(rightSide)));
+                  return filter(settings)(foldl12(append13)([])(map6(steady(true)(size3)(3)([]))(rightSide)));
                 }
                 ;
                 return [];
@@ -5510,8 +6727,8 @@
           };
           var upgraded = append13(block(defaultSettings)(1)(1))(filter(defaultSettings)([down, left, right]));
           var attackedPos = function(pos) {
-            var $572 = any2(isAttacked(pos))(attackedPositions);
-            if ($572) {
+            var $630 = any2(isAttacked(pos))(attackedPositions);
+            if ($630) {
               return false;
             }
             ;
@@ -5519,8 +6736,8 @@
           };
           var v1 = getType(piece);
           if (v1 instanceof King) {
-            var $574 = isOpponent(piece);
-            if ($574) {
+            var $632 = isOpponent(piece);
+            if ($632) {
               return [];
             }
             ;
@@ -5528,8 +6745,8 @@
           }
           ;
           if (v1 instanceof Queen) {
-            var $575 = isOpponent(piece);
-            if ($575) {
+            var $633 = isOpponent(piece);
+            if ($633) {
               return [];
             }
             ;
@@ -5537,8 +6754,8 @@
           }
           ;
           if (v1 instanceof Flag) {
-            var $576 = isOpponent(piece);
-            if ($576) {
+            var $634 = isOpponent(piece);
+            if ($634) {
               return [];
             }
             ;
@@ -5566,8 +6783,8 @@
           }
           ;
           if (v1 instanceof ElfRanged) {
-            var $577 = isOpponent(piece);
-            if ($577) {
+            var $635 = isOpponent(piece);
+            if ($635) {
               return ranged(1)(2);
             }
             ;
@@ -5586,18 +6803,812 @@
             return steady(true)(2)(0)([])(up);
           }
           ;
-          if (v1 instanceof HumanUpgraded) {
+          if (v1 instanceof Warrior) {
             return upgraded;
           }
           ;
-          if (v1 instanceof GoblinUpgraded) {
+          if (v1 instanceof Hobgoblin) {
             return upgraded;
           }
           ;
-          throw new Error("Failed pattern match at Main (line 1000, column 13 - line 1014, column 43): " + [v1.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 1306, column 13 - line 1320, column 38): " + [v1.constructor.name]);
         }
         ;
-        throw new Error("Failed pattern match at Main (line 988, column 5 - line 1099, column 72): " + [v.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 1294, column 5 - line 1405, column 72): " + [v.constructor.name]);
+      };
+    };
+  };
+  var onRender = function(images2) {
+    return function(ctx) {
+      return function(state3) {
+        var renderSelectedPiece = function() {
+          if (state3.selectedPiece instanceof Nothing) {
+            return pure4(unit);
+          }
+          ;
+          if (state3.selectedPiece instanceof Just) {
+            var piecePos = getPos(state3.selectedPiece.value0);
+            var screenPos = getScreenPos(piecePos);
+            return drawRect(ctx)({
+              x: screenPos.x,
+              y: screenPos.y,
+              width: gridSize,
+              height: gridSize,
+              color: colors.selected
+            });
+          }
+          ;
+          throw new Error("Failed pattern match at Main (line 768, column 9 - line 776, column 32): " + [state3.selectedPiece.constructor.name]);
+        }();
+        var renderRequest = function() {
+          if (state3.request instanceof Nothing) {
+            return pure4(unit);
+          }
+          ;
+          if (state3.request instanceof Just) {
+            var y = height8 / 2;
+            var x = gridSize * toNumber(cols2 + 2 | 0);
+            var requestType = function() {
+              var $642 = contains("New Match")(state3.request.value0.payload);
+              if ($642) {
+                return "Rematch";
+              }
+              ;
+              return "";
+            }();
+            var $643 = eq3(new Just(state3.request.value0.playerId))(state3.playerId);
+            if ($643) {
+              return drawText(ctx)({
+                x,
+                y: y + gridSize,
+                font: "courier",
+                size: 14,
+                color: colors["default"],
+                text: requestType + " sent"
+              });
+            }
+            ;
+            return function __do2() {
+              drawText(ctx)({
+                x,
+                y: y - gridSize,
+                font: "courier",
+                size: 14,
+                color: colors["default"],
+                text: requestType
+              })();
+              return drawText(ctx)({
+                x,
+                y: y + gridSize,
+                font: "courier",
+                size: 14,
+                color: colors["default"],
+                text: "Y / N"
+              })();
+            };
+          }
+          ;
+          throw new Error("Failed pattern match at Main (line 665, column 21 - line 678, column 113): " + [state3.request.constructor.name]);
+        }();
+        var renderPreviousMove = function() {
+          if (state3.previousMove instanceof Nothing) {
+            return pure4(unit);
+          }
+          ;
+          if (state3.previousMove instanceof Just) {
+            var screenPos2 = getScreenPos(state3.previousMove.value0.to);
+            var screenPos1 = getScreenPos(state3.previousMove.value0.from);
+            return function __do2() {
+              drawRect(ctx)({
+                x: screenPos1.x,
+                y: screenPos1.y,
+                width: gridSize,
+                height: gridSize,
+                color: colors.selected
+              })();
+              return drawRect(ctx)({
+                x: screenPos2.x,
+                y: screenPos2.y,
+                width: gridSize,
+                height: gridSize,
+                color: colors.selected
+              })();
+            };
+          }
+          ;
+          throw new Error("Failed pattern match at Main (line 757, column 9 - line 764, column 45): " + [state3.previousMove.constructor.name]);
+        }();
+        var renderPlayers = function() {
+          var y = height8 / 2;
+          var x = gridSize * toNumber(cols2 + 2 | 0);
+          var text5 = function() {
+            var $649 = state3.changeName && mod3(state3.tickCount)(30) > 15;
+            if ($649) {
+              return state3.name + "|";
+            }
+            ;
+            return state3.name;
+          }();
+          var color2 = function() {
+            var $650 = eq4(state3.winner)(new Just(true));
+            if ($650) {
+              return colors.attacked;
+            }
+            ;
+            var $651 = eq4(state3.winner)(new Just(false));
+            if ($651) {
+              return colors.available;
+            }
+            ;
+            return colors["default"];
+          }();
+          var color1 = function() {
+            var $652 = eq4(state3.winner)(new Just(true));
+            if ($652) {
+              return colors.available;
+            }
+            ;
+            var $653 = eq4(state3.winner)(new Just(false));
+            if ($653) {
+              return colors.attacked;
+            }
+            ;
+            return colors["default"];
+          }();
+          return function __do2() {
+            drawText(ctx)({
+              x,
+              y: y + gridSize * 3,
+              color: color1,
+              font: "courier",
+              size: 14,
+              text: text5
+            })();
+            drawText(ctx)({
+              x,
+              y: y + gridSize * 2,
+              color: color1,
+              font: "courier",
+              size: 16,
+              text: show4(state3.score.me)
+            })();
+            drawText(ctx)({
+              x,
+              y: y - gridSize * 3,
+              color: color2,
+              font: "courier",
+              size: 14,
+              text: state3.opponentName
+            })();
+            return drawText(ctx)({
+              x,
+              y: y - gridSize * 2,
+              color: color2,
+              font: "courier",
+              size: 16,
+              text: show4(state3.score.opponent)
+            })();
+          };
+        }();
+        var renderPiece = function(effect) {
+          return function(piece) {
+            var playerId = function() {
+              var $654 = show22(state3.playerId) === "(Just Player1)";
+              if ($654) {
+                return "1";
+              }
+              ;
+              var $655 = show22(state3.playerId) === "(Just Player2)";
+              if ($655) {
+                return "2";
+              }
+              ;
+              return "";
+            }();
+            var pieceTeam = isOpponent(piece);
+            var piecePos = getPos(piece);
+            var screenPos = getScreenPos(piecePos);
+            var xr = screenPos.x + gridSize / 2;
+            var yr = screenPos.y + gridSize / 2;
+            var imagePath = function() {
+              var v = getType(piece);
+              if (v instanceof Flag) {
+                var $657 = pieceTeam && playerId === "2";
+                if ($657) {
+                  return "images/Flag1.png";
+                }
+                ;
+                var $658 = pieceTeam && playerId === "1";
+                if ($658) {
+                  return "images/Flag2.png";
+                }
+                ;
+                return "images/Flag" + (playerId + ".png");
+              }
+              ;
+              return "images/" + (show6(getType(piece)) + ".png");
+            }();
+            var color = function() {
+              if (state3.playerId instanceof Nothing) {
+                return colors.background;
+              }
+              ;
+              if (state3.playerId instanceof Just) {
+                var v = show32(state3.playerId.value0);
+                if (v === "Player1") {
+                  if (pieceTeam) {
+                    return colors.player2;
+                  }
+                  ;
+                  return colors.player1;
+                }
+                ;
+                if (v === "Player2") {
+                  if (pieceTeam) {
+                    return colors.player1;
+                  }
+                  ;
+                  return colors.player2;
+                }
+                ;
+                return colors.background;
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 879, column 13 - line 885, column 47): " + [state3.playerId.constructor.name]);
+            }();
+            return function __do2() {
+              effect();
+              (function() {
+                var v = getType(piece);
+                if (v instanceof Flag) {
+                  return unit;
+                }
+                ;
+                return drawCircle(ctx)({
+                  x: xr,
+                  y: yr + 3,
+                  radius: 12,
+                  color
+                })();
+              })();
+              (function() {
+                var v = lookup2(imagePath)(images2);
+                if (v instanceof Nothing) {
+                  return unit;
+                }
+                ;
+                if (v instanceof Just) {
+                  return drawImageScaled(ctx)(v.value0)({
+                    x: screenPos.x,
+                    y: screenPos.y,
+                    width: gridSize,
+                    height: gridSize
+                  })();
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 857, column 9 - line 859, column 84): " + [v.constructor.name]);
+              })();
+              if (piece instanceof Board) {
+                return unit;
+              }
+              ;
+              if (piece instanceof Hand) {
+                return drawText(ctx)({
+                  x: screenPos.x + gridSize * 0.8,
+                  y: screenPos.y + gridSize,
+                  size: 14,
+                  color: colors["default"],
+                  font: "courier",
+                  text: show4(piece.value0.count)
+                })();
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 860, column 9 - line 862, column 150): " + [piece.constructor.name]);
+            };
+          };
+        };
+        var renderPieces = function __do2() {
+          foldl22(renderPiece)(pure4(unit))(values(state3.board))();
+          return foldl22(renderPiece)(pure4(unit))(values(state3.hand))();
+        };
+        var renderMove = function(color) {
+          return function(effect) {
+            return function(piecePos) {
+              var screenPos = getScreenPos(piecePos);
+              var x = screenPos.x + gridSize / 2;
+              var y = screenPos.y + gridSize / 2;
+              var radius = gridSize / 8;
+              return function __do2() {
+                effect();
+                return drawCircle(ctx)({
+                  x,
+                  y,
+                  radius,
+                  color
+                })();
+              };
+            };
+          };
+        };
+        var renderMessage = function() {
+          var y = height8 / 2;
+          var x = gridSize * toNumber(cols2 + 2 | 0);
+          var text5 = function() {
+            if (state3.status instanceof NotConnected) {
+              return "Not Connected";
+            }
+            ;
+            if (state3.status instanceof Waiting) {
+              var $671 = mod3(state3.tickCount)(60) > 45;
+              if ($671) {
+                return "Waiting...";
+              }
+              ;
+              var $672 = mod3(state3.tickCount)(60) > 30;
+              if ($672) {
+                return "Waiting..";
+              }
+              ;
+              var $673 = mod3(state3.tickCount)(60) > 15;
+              if ($673) {
+                return "Waiting.";
+              }
+              ;
+              return "Waiting";
+            }
+            ;
+            if (state3.status instanceof End) {
+              var $674 = eq4(state3.winner)(new Just(true));
+              if ($674) {
+                return "You win!";
+              }
+              ;
+              return "You lose!";
+            }
+            ;
+            if (state3.turn) {
+              return "Your turn! " + (show4(3 - state3.actions | 0) + "/3");
+            }
+            ;
+            return "Opponent's turn! " + (show4(3 + state3.actions | 0) + "/3");
+          }();
+          var color = function() {
+            if (state3.status instanceof End) {
+              var $677 = eq4(state3.winner)(new Just(true));
+              if ($677) {
+                return colors.available;
+              }
+              ;
+              return colors.attacked;
+            }
+            ;
+            return "white";
+          }();
+          return function __do2() {
+            drawText(ctx)({
+              x,
+              y: y - 16,
+              color: colors["default"],
+              font: "courier",
+              size: 14,
+              text: "The Great War"
+            })();
+            drawText(ctx)({
+              x,
+              y: y - 4,
+              color: colors["default"],
+              font: "courier",
+              size: 14,
+              text: "of the Ancients"
+            })();
+            return drawText(ctx)({
+              x,
+              y: y + 16,
+              color,
+              font: "courier",
+              size: 14,
+              text: text5
+            })();
+          };
+        }();
+        var renderGridHand = function(row) {
+          return function(effect) {
+            return function(col) {
+              return function __do2() {
+                effect();
+                var y = gridSize * toNumber(row) - gridSize;
+                var x = gridSize * toNumber(col) - gridSize;
+                var color = function() {
+                  var $678 = mod3(row + col | 0)(2) === 0;
+                  if ($678) {
+                    return colors.hand1;
+                  }
+                  ;
+                  return colors.hand2;
+                }();
+                return drawRect(ctx)({
+                  x,
+                  y,
+                  width: gridSize,
+                  height: gridSize,
+                  color
+                })();
+              };
+            };
+          };
+        };
+        var renderRowHand = function(effect) {
+          return function(row) {
+            return foldl12(renderGridHand(row))(effect)(range2(cols2 + 1 | 0)(cols2 + 4 | 0));
+          };
+        };
+        var renderHand = function() {
+          var y = gridSize * 10 + 0.8;
+          var x = gridSize * 16 + 0.8;
+          return function __do2() {
+            foldl12(renderRowHand)(pure4(unit))(append13(range2(1)(3))(range2(11)(rows4)))();
+            drawRectOutline(ctx)({
+              x,
+              y: 0,
+              width: gridSize * 4 - 1.6,
+              height: gridSize * 3,
+              color: "#1E292A"
+            })();
+            drawRectOutline(ctx)({
+              x,
+              y: gridSize * 3,
+              width: gridSize * 4 - 1.6,
+              height: gridSize * 7,
+              color: "#1E292A"
+            })();
+            return drawRectOutline(ctx)({
+              x,
+              y,
+              width: gridSize * 4 - 1.6,
+              height: gridSize * 3,
+              color: "#1E292A"
+            })();
+          };
+        }();
+        var renderGrid = function(row) {
+          return function(effect) {
+            return function(col) {
+              return function __do2() {
+                effect();
+                var y = gridSize * toNumber(row) - gridSize;
+                var x = gridSize * toNumber(col) - gridSize;
+                var color = function() {
+                  var $679 = mod3(row + col | 0)(2) === 0;
+                  if ($679) {
+                    return colors.tile1;
+                  }
+                  ;
+                  return colors.tile2;
+                }();
+                return drawRect(ctx)({
+                  x,
+                  y,
+                  width: gridSize,
+                  height: gridSize,
+                  color
+                })();
+              };
+            };
+          };
+        };
+        var renderRow = function(effect) {
+          return function(row) {
+            return foldl12(renderGrid(row))(effect)(range2(1)(cols2));
+          };
+        };
+        var renderEndCondition = function() {
+          var queenScreenPos = function() {
+            var v = index(getPieces(state3.board)(Queen.value)(false))(0);
+            if (v instanceof Nothing) {
+              return getScreenPos(new Grid({
+                r: -1 | 0,
+                c: -1 | 0
+              }));
+            }
+            ;
+            if (v instanceof Just) {
+              return getScreenPos(getPos(v.value0));
+            }
+            ;
+            throw new Error("Failed pattern match at Main (line 821, column 26 - line 823, column 54): " + [v.constructor.name]);
+          }();
+          var kingScreenPos = function() {
+            var v = index(getPieces(state3.board)(King.value)(false))(0);
+            if (v instanceof Nothing) {
+              return getScreenPos(new Grid({
+                r: -1 | 0,
+                c: -1 | 0
+              }));
+            }
+            ;
+            if (v instanceof Just) {
+              return getScreenPos(getPos(v.value0));
+            }
+            ;
+            throw new Error("Failed pattern match at Main (line 818, column 25 - line 820, column 54): " + [v.constructor.name]);
+          }();
+          var flagScreenPos = getScreenPos(state3.flagPosition);
+          var enemyQueenScreenPos = function() {
+            var v = index(getPieces(state3.board)(Queen.value)(true))(0);
+            if (v instanceof Nothing) {
+              return getScreenPos(new Grid({
+                r: -1 | 0,
+                c: -1 | 0
+              }));
+            }
+            ;
+            if (v instanceof Just) {
+              return getScreenPos(getPos(v.value0));
+            }
+            ;
+            throw new Error("Failed pattern match at Main (line 814, column 31 - line 816, column 54): " + [v.constructor.name]);
+          }();
+          var enemyKingScreenPos = function() {
+            var v = index(getPieces(state3.board)(King.value)(true))(0);
+            if (v instanceof Nothing) {
+              return getScreenPos(new Grid({
+                r: -1 | 0,
+                c: -1 | 0
+              }));
+            }
+            ;
+            if (v instanceof Just) {
+              return getScreenPos(getPos(v.value0));
+            }
+            ;
+            throw new Error("Failed pattern match at Main (line 811, column 30 - line 813, column 54): " + [v.constructor.name]);
+          }();
+          var enemyFlagPos = function() {
+            var v = index(getPieces(state3.board)(Flag.value)(true))(0);
+            if (v instanceof Nothing) {
+              return new Grid({
+                r: -1 | 0,
+                c: -1 | 0
+              });
+            }
+            ;
+            if (v instanceof Just) {
+              return getPos(v.value0);
+            }
+            ;
+            throw new Error("Failed pattern match at Main (line 808, column 24 - line 810, column 39): " + [v.constructor.name]);
+          }();
+          var enemyFlagScreenPos = getScreenPos(enemyFlagPos);
+          var condition6 = function() {
+            var $690 = eq9(getImportantPiecesMoves(state3.board)([King.value, Queen.value])(new Just(true))(state3.attackedPositions))([]);
+            if ($690) {
+              return true;
+            }
+            ;
+            return false;
+          }();
+          var condition5 = function() {
+            var $691 = eq9(getImportantPiecesMoves(state3.board)([Flag.value])(new Just(true))(state3.attackedPositions))([]);
+            if ($691) {
+              return true;
+            }
+            ;
+            return false;
+          }();
+          var condition4 = function() {
+            if (enemyFlagPos instanceof Grid) {
+              var $693 = enemyFlagPos.value0.r > 9;
+              if ($693) {
+                return true;
+              }
+              ;
+              return false;
+            }
+            ;
+            return false;
+          }();
+          var condition3 = function() {
+            var $697 = eq9(getImportantPiecesMoves(state3.board)([King.value, Queen.value])(new Just(false))(state3.attackedPositions))([]);
+            if ($697) {
+              return true;
+            }
+            ;
+            return false;
+          }();
+          var condition2 = function() {
+            var $698 = eq9(getImportantPiecesMoves(state3.board)([Flag.value])(new Just(false))(state3.attackedPositions))([]);
+            if ($698) {
+              return true;
+            }
+            ;
+            return false;
+          }();
+          var condition1 = function() {
+            if (state3.flagPosition instanceof Grid) {
+              var $700 = state3.flagPosition.value0.r < 3;
+              if ($700) {
+                return true;
+              }
+              ;
+              return false;
+            }
+            ;
+            return false;
+          }();
+          var $704 = eq7(state3.status)(End.value);
+          if ($704) {
+            if (condition1) {
+              return drawRect(ctx)({
+                x: flagScreenPos.x,
+                y: flagScreenPos.y,
+                width: gridSize,
+                height: gridSize,
+                color: colors.available
+              });
+            }
+            ;
+            if (condition2) {
+              return drawRect(ctx)({
+                x: flagScreenPos.x,
+                y: flagScreenPos.y,
+                width: gridSize,
+                height: gridSize,
+                color: colors.attacked
+              });
+            }
+            ;
+            if (condition3) {
+              return function __do2() {
+                drawRect(ctx)({
+                  x: kingScreenPos.x,
+                  y: kingScreenPos.y,
+                  width: gridSize,
+                  height: gridSize,
+                  color: colors.attacked
+                })();
+                return drawRect(ctx)({
+                  x: queenScreenPos.x,
+                  y: queenScreenPos.y,
+                  width: gridSize,
+                  height: gridSize,
+                  color: colors.attacked
+                })();
+              };
+            }
+            ;
+            if (condition4) {
+              return drawRect(ctx)({
+                x: enemyFlagScreenPos.x,
+                y: enemyFlagScreenPos.y,
+                width: gridSize,
+                height: gridSize,
+                color: colors.attacked
+              });
+            }
+            ;
+            if (condition5) {
+              return drawRect(ctx)({
+                x: enemyFlagScreenPos.x,
+                y: enemyFlagScreenPos.y,
+                width: gridSize,
+                height: gridSize,
+                color: colors.available
+              });
+            }
+            ;
+            if (condition6) {
+              return function __do2() {
+                drawRect(ctx)({
+                  x: enemyKingScreenPos.x,
+                  y: enemyKingScreenPos.y,
+                  width: gridSize,
+                  height: gridSize,
+                  color: colors.available
+                })();
+                return drawRect(ctx)({
+                  x: enemyQueenScreenPos.x,
+                  y: enemyQueenScreenPos.y,
+                  width: gridSize,
+                  height: gridSize,
+                  color: colors.available
+                })();
+              };
+            }
+            ;
+            return function __do2() {
+              log2("Unknown End Condition")();
+              return unit;
+            };
+          }
+          ;
+          return pure4(unit);
+        }();
+        var renderChatMessage = function(effect) {
+          return function(v) {
+            var y = 20 * toNumber(v.i + 1 | 0);
+            var x = gridSize * toNumber(cols2 + 4 | 0) + 12;
+            return function __do2() {
+              effect();
+              return drawTextLeft(ctx)({
+                x,
+                y,
+                color: colors["default"],
+                font: "courier",
+                size: 12,
+                text: v.chat
+              })();
+            };
+          };
+        };
+        var renderChatLog = function() {
+          var prefixIndex = function(i) {
+            return function(chat) {
+              return {
+                i,
+                chat
+              };
+            };
+          };
+          return foldl12(renderChatMessage)(pure4(unit))(mapWithIndex2(prefixIndex)(state3.chatLog));
+        }();
+        var renderChatBox = function() {
+          var x = gridSize * toNumber(cols2 + 4 | 0) + 12;
+          var text5 = function() {
+            if (state3.chatState) {
+              var $716 = mod3(state3.tickCount)(30) > 15;
+              if ($716) {
+                return state3.chat + "|";
+              }
+              ;
+              return state3.chat;
+            }
+            ;
+            var $717 = state3.chat === "";
+            if ($717) {
+              return "Press Enter to Chat";
+            }
+            ;
+            return state3.chat;
+          }();
+          var color = function() {
+            var $718 = state3.chatState || !(state3.chat === "");
+            if ($718) {
+              return colors["default"];
+            }
+            ;
+            return colors.hand2;
+          }();
+          return drawTextLeft(ctx)({
+            x,
+            y: gridSize * toNumber(rows4) - 12,
+            color,
+            font: "courier",
+            size: 12,
+            text: text5
+          });
+        }();
+        var renderBoard = foldl12(renderRow)(pure4(unit))(range2(1)(rows4));
+        var renderAvailableMoves = foldl12(renderMove(colors.available))(pure4(unit))(state3.availableMoves);
+        var renderGame = function __do2() {
+          clearCanvas(ctx)({
+            width: width8,
+            height: height8,
+            color: colors.background
+          })();
+          renderBoard();
+          renderHand();
+          renderPlayers();
+          renderMessage();
+          renderRequest();
+          renderChatBox();
+          renderChatLog();
+          renderSelectedPiece();
+          renderPreviousMove();
+          renderEndCondition();
+          renderPieces();
+          return renderAvailableMoves();
+        };
+        return renderGame;
       };
     };
   };
@@ -5620,8 +7631,8 @@
                 if (prev instanceof Just) {
                   var v1 = lookup1(prev.value0)(hand);
                   if (v1 instanceof Nothing) {
-                    var $585 = eq8(prev)(Nothing.value);
-                    if ($585) {
+                    var $723 = eq10(prev)(Nothing.value);
+                    if ($723) {
                       return next;
                     }
                     ;
@@ -5629,33 +7640,33 @@
                   }
                   ;
                   if (v1 instanceof Just) {
-                    var $586 = eq5(getType(v1.value0))(getType(piece$prime));
-                    if ($586) {
+                    var $724 = eq6(getType(v1.value0))(getType(piece$prime));
+                    if ($724) {
                       return prev;
                     }
                     ;
                     return next;
                   }
                   ;
-                  throw new Error("Failed pattern match at Main (line 914, column 37 - line 916, column 85): " + [v1.constructor.name]);
+                  throw new Error("Failed pattern match at Main (line 1220, column 37 - line 1222, column 85): " + [v1.constructor.name]);
                 }
                 ;
-                throw new Error("Failed pattern match at Main (line 912, column 28 - line 916, column 85): " + [prev.constructor.name]);
+                throw new Error("Failed pattern match at Main (line 1218, column 28 - line 1222, column 85): " + [prev.constructor.name]);
               }
               ;
               if (v instanceof Just) {
-                var $589 = eq5(getType(v.value0))(getType(piece$prime));
-                if ($589) {
+                var $727 = eq6(getType(v.value0))(getType(piece$prime));
+                if ($727) {
                   return next;
                 }
                 ;
                 return prev;
               }
               ;
-              throw new Error("Failed pattern match at Main (line 911, column 29 - line 917, column 77): " + [v.constructor.name]);
+              throw new Error("Failed pattern match at Main (line 1217, column 29 - line 1223, column 77): " + [v.constructor.name]);
             }
             ;
-            throw new Error("Failed pattern match at Main (line 909, column 9 - line 917, column 77): " + [next.constructor.name]);
+            throw new Error("Failed pattern match at Main (line 1215, column 9 - line 1223, column 77): " + [next.constructor.name]);
           };
         };
         var findSlots = function(o) {
@@ -5667,15 +7678,15 @@
               }
               ;
               if (v instanceof Just) {
-                var $593 = eq5(getType(v.value0))(unitType);
-                if ($593) {
+                var $731 = eq6(getType(v.value0))(unitType);
+                if ($731) {
                   return new Just(new OnHand(o, c));
                 }
                 ;
                 return Nothing.value;
               }
               ;
-              throw new Error("Failed pattern match at Main (line 903, column 9 - line 905, column 83): " + [v.constructor.name]);
+              throw new Error("Failed pattern match at Main (line 1209, column 9 - line 1211, column 83): " + [v.constructor.name]);
             };
           };
         };
@@ -5694,7 +7705,7 @@
               });
             }
             ;
-            throw new Error("Failed pattern match at Main (line 897, column 33 - line 899, column 87): " + [n_piece.constructor.name]);
+            throw new Error("Failed pattern match at Main (line 1203, column 33 - line 1205, column 87): " + [n_piece.constructor.name]);
           };
         };
         var checkHand = function(n_piece) {
@@ -5709,20 +7720,20 @@
           ;
           return Nothing.value;
         };
-        return function __do() {
+        return function __do2() {
           var piece = function() {
             var v2 = getType(piece$prime);
-            if (v2 instanceof HumanUpgraded) {
+            if (v2 instanceof Warrior) {
               return changeType(piece$prime)(Human.value);
             }
             ;
-            if (v2 instanceof GoblinUpgraded) {
+            if (v2 instanceof Hobgoblin) {
               return changeType(piece$prime)(Goblin.value);
             }
             ;
             return piece$prime;
           }();
-          var availablePos = foldl3(lookupSlot)(Nothing.value)(mapFlipped2(range2(0)(11))(findSlots(opponent)(getType(piece))));
+          var availablePos = foldl12(lookupSlot)(Nothing.value)(mapFlipped1(range2(0)(11))(findSlots(opponent)(getType(piece))));
           if (availablePos instanceof Nothing) {
             log2("Error: No available slots in hand")();
             return hand;
@@ -5742,10 +7753,10 @@
               return hand;
             }
             ;
-            throw new Error("Failed pattern match at Main (line 885, column 21 - line 889, column 31): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at Main (line 1191, column 21 - line 1195, column 31): " + [v.constructor.name]);
           }
           ;
-          throw new Error("Failed pattern match at Main (line 881, column 5 - line 889, column 31): " + [availablePos.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 1187, column 5 - line 1195, column 31): " + [availablePos.constructor.name]);
         };
       };
     };
@@ -5755,13 +7766,13 @@
       return function(state3) {
         var shouldUpgrade = function(opponent) {
           if (pos2 instanceof Grid) {
-            var $608 = opponent && pos2.value0.r > 9;
-            if ($608) {
+            var $746 = opponent && pos2.value0.r > 9;
+            if ($746) {
               return true;
             }
             ;
-            var $609 = !opponent && pos2.value0.r < 3;
-            if ($609) {
+            var $747 = !opponent && pos2.value0.r < 3;
+            if ($747) {
               return true;
             }
             ;
@@ -5776,7 +7787,7 @@
         }
         ;
         if (v instanceof Just) {
-          return function __do() {
+          return function __do2() {
             var piece = function() {
               if (v.value0 instanceof Board) {
                 if (v.value0.value0.type instanceof ElfRanged) {
@@ -5788,12 +7799,12 @@
                 }
                 ;
                 if (v.value0.value0.type instanceof Human) {
-                  var $616 = shouldUpgrade(isOpponent(v.value0));
-                  if ($616) {
+                  var $754 = shouldUpgrade(isOpponent(v.value0));
+                  if ($754) {
                     return new Board({
                       opponent: v.value0.value0.opponent,
                       pos: pos2,
-                      type: HumanUpgraded.value
+                      type: Warrior.value
                     });
                   }
                   ;
@@ -5805,12 +7816,12 @@
                 }
                 ;
                 if (v.value0.value0.type instanceof Goblin) {
-                  var $617 = shouldUpgrade(isOpponent(v.value0));
-                  if ($617) {
+                  var $755 = shouldUpgrade(isOpponent(v.value0));
+                  if ($755) {
                     return new Board({
                       opponent: v.value0.value0.opponent,
                       pos: pos2,
-                      type: GoblinUpgraded.value
+                      type: Hobgoblin.value
                     });
                   }
                   ;
@@ -5840,26 +7851,39 @@
                 return addToHand(state3.hand)(isOpponent(piece))(capturedPiece.value0)();
               }
               ;
-              throw new Error("Failed pattern match at Main (line 932, column 21 - line 934, column 68): " + [capturedPiece.constructor.name]);
+              throw new Error("Failed pattern match at Main (line 1238, column 21 - line 1240, column 68): " + [capturedPiece.constructor.name]);
             }();
             var board$prime = $$delete2(pos1)($$delete2(pos2)(state3.board));
             var board = insert3(getPos(piece))(piece)(board$prime);
-            var $621 = isOpponent(v.value0);
-            if ($621) {
+            var $759 = isOpponent(v.value0);
+            if ($759) {
               return {
                 attackedPositions: state3.attackedPositions,
                 availableMoves: state3.availableMoves,
                 canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
                 flagPosition: state3.flagPosition,
                 lastReceivedMessage: state3.lastReceivedMessage,
                 messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
                 playerId: state3.playerId,
+                request: state3.request,
                 score: state3.score,
                 selectedPiece: state3.selectedPiece,
-                state: state3.state,
+                status: state3.status,
                 tickCount: state3.tickCount,
                 turn: state3.turn,
+                upperCase: state3.upperCase,
                 winner: state3.winner,
+                previousMove: new Just({
+                  from: pos1,
+                  to: pos2
+                }),
                 actions: state3.actions + 1 | 0,
                 board,
                 hand
@@ -5870,15 +7894,28 @@
               attackedPositions: state3.attackedPositions,
               availableMoves: state3.availableMoves,
               canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
               flagPosition: state3.flagPosition,
               lastReceivedMessage: state3.lastReceivedMessage,
               messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
               playerId: state3.playerId,
+              request: state3.request,
               score: state3.score,
-              state: state3.state,
+              status: state3.status,
               tickCount: state3.tickCount,
               turn: state3.turn,
+              upperCase: state3.upperCase,
               winner: state3.winner,
+              previousMove: new Just({
+                from: pos1,
+                to: pos2
+              }),
               selectedPiece: new Just(piece),
               actions: state3.actions - 1 | 0,
               board,
@@ -5887,18 +7924,18 @@
           };
         }
         ;
-        throw new Error("Failed pattern match at Main (line 921, column 5 - line 938, column 118): " + [v.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 1227, column 5 - line 1244, column 164): " + [v.constructor.name]);
       };
     };
   };
   var onMouseDown = function(send) {
     return function(v) {
       return function(state$prime) {
-        if (eq6(state$prime.state)(Waiting.value)) {
+        if (eq7(state$prime.status)(Waiting.value)) {
           return pure4(state$prime);
         }
         ;
-        if (eq6(state$prime.state)(End.value)) {
+        if (eq7(state$prime.status)(End.value)) {
           return pure4(state$prime);
         }
         ;
@@ -5906,18 +7943,18 @@
           var r = floor2(toNumber(v.y - 7 | 0) / gridSize);
           var c = floor2(toNumber(v.x - 7 | 0) / gridSize);
           var p = function() {
-            var $626 = c > 15 && r < 3;
-            if ($626) {
+            var $764 = c > 15 && r < 3;
+            if ($764) {
               return new Just(new OnHand(true, (r * 4 | 0) + (c - 16 | 0) | 0));
             }
             ;
-            var $627 = c > 15 && r > 9;
-            if ($627) {
+            var $765 = c > 15 && r > 9;
+            if ($765) {
               return new Just(new OnHand(false, ((r - 10 | 0) * 4 | 0) + (c - 16 | 0) | 0));
             }
             ;
-            var $628 = c < 16;
-            if ($628) {
+            var $766 = c < 16;
+            if ($766) {
               return new Just(new Grid({
                 r,
                 c
@@ -5943,15 +7980,25 @@
                       availableMoves: state3.availableMoves,
                       board: state3.board,
                       canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
                       flagPosition: state3.flagPosition,
                       hand: state3.hand,
                       lastReceivedMessage: state3.lastReceivedMessage,
                       messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
                       playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
                       score: state3.score,
-                      state: state3.state,
+                      status: state3.status,
                       tickCount: state3.tickCount,
                       turn: state3.turn,
+                      upperCase: state3.upperCase,
                       winner: state3.winner,
                       selectedPiece: Nothing.value
                     });
@@ -5959,23 +8006,33 @@
                   ;
                   if (v2 instanceof Just) {
                     if (state3.selectedPiece instanceof Nothing) {
-                      var $633 = isOpponent(v2.value0);
-                      if ($633) {
+                      var $771 = isOpponent(v2.value0);
+                      if ($771) {
                         return pure4({
                           actions: state3.actions,
                           attackedPositions: state3.attackedPositions,
                           availableMoves: state3.availableMoves,
                           board: state3.board,
                           canSend: state3.canSend,
+                          changeName: state3.changeName,
+                          chat: state3.chat,
+                          chatLog: state3.chatLog,
+                          chatState: state3.chatState,
                           flagPosition: state3.flagPosition,
                           hand: state3.hand,
                           lastReceivedMessage: state3.lastReceivedMessage,
                           messages: state3.messages,
+                          name: state3.name,
+                          nameChanged: state3.nameChanged,
+                          opponentName: state3.opponentName,
                           playerId: state3.playerId,
+                          previousMove: state3.previousMove,
+                          request: state3.request,
                           score: state3.score,
-                          state: state3.state,
+                          status: state3.status,
                           tickCount: state3.tickCount,
                           turn: state3.turn,
+                          upperCase: state3.upperCase,
                           winner: state3.winner,
                           selectedPiece: Nothing.value
                         });
@@ -5987,60 +8044,90 @@
                         availableMoves: state3.availableMoves,
                         board: state3.board,
                         canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chat: state3.chat,
+                        chatLog: state3.chatLog,
+                        chatState: state3.chatState,
                         flagPosition: state3.flagPosition,
                         hand: state3.hand,
                         lastReceivedMessage: state3.lastReceivedMessage,
                         messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
                         playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
                         score: state3.score,
-                        state: state3.state,
+                        status: state3.status,
                         tickCount: state3.tickCount,
                         turn: state3.turn,
+                        upperCase: state3.upperCase,
                         winner: state3.winner,
                         selectedPiece: new Just(v2.value0)
                       });
                     }
                     ;
                     if (state3.selectedPiece instanceof Just) {
-                      var $634 = isOpponent(v2.value0);
-                      if ($634) {
+                      var $772 = isOpponent(v2.value0);
+                      if ($772) {
                         return pure4({
                           actions: state3.actions,
                           attackedPositions: state3.attackedPositions,
                           availableMoves: state3.availableMoves,
                           board: state3.board,
                           canSend: state3.canSend,
+                          changeName: state3.changeName,
+                          chat: state3.chat,
+                          chatLog: state3.chatLog,
+                          chatState: state3.chatState,
                           flagPosition: state3.flagPosition,
                           hand: state3.hand,
                           lastReceivedMessage: state3.lastReceivedMessage,
                           messages: state3.messages,
+                          name: state3.name,
+                          nameChanged: state3.nameChanged,
+                          opponentName: state3.opponentName,
                           playerId: state3.playerId,
+                          previousMove: state3.previousMove,
+                          request: state3.request,
                           score: state3.score,
-                          state: state3.state,
+                          status: state3.status,
                           tickCount: state3.tickCount,
                           turn: state3.turn,
+                          upperCase: state3.upperCase,
                           winner: state3.winner,
                           selectedPiece: Nothing.value
                         });
                       }
                       ;
-                      var $635 = eq10(state3.selectedPiece.value0)(v2.value0);
-                      if ($635) {
+                      var $773 = eq11(state3.selectedPiece.value0)(v2.value0);
+                      if ($773) {
                         return pure4({
                           actions: state3.actions,
                           attackedPositions: state3.attackedPositions,
                           availableMoves: state3.availableMoves,
                           board: state3.board,
                           canSend: state3.canSend,
+                          changeName: state3.changeName,
+                          chat: state3.chat,
+                          chatLog: state3.chatLog,
+                          chatState: state3.chatState,
                           flagPosition: state3.flagPosition,
                           hand: state3.hand,
                           lastReceivedMessage: state3.lastReceivedMessage,
                           messages: state3.messages,
+                          name: state3.name,
+                          nameChanged: state3.nameChanged,
+                          opponentName: state3.opponentName,
                           playerId: state3.playerId,
+                          previousMove: state3.previousMove,
+                          request: state3.request,
                           score: state3.score,
-                          state: state3.state,
+                          status: state3.status,
                           tickCount: state3.tickCount,
                           turn: state3.turn,
+                          upperCase: state3.upperCase,
                           winner: state3.winner,
                           selectedPiece: Nothing.value
                         });
@@ -6052,45 +8139,65 @@
                         availableMoves: state3.availableMoves,
                         board: state3.board,
                         canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chat: state3.chat,
+                        chatLog: state3.chatLog,
+                        chatState: state3.chatState,
                         flagPosition: state3.flagPosition,
                         hand: state3.hand,
                         lastReceivedMessage: state3.lastReceivedMessage,
                         messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
                         playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
                         score: state3.score,
-                        state: state3.state,
+                        status: state3.status,
                         tickCount: state3.tickCount,
                         turn: state3.turn,
+                        upperCase: state3.upperCase,
                         winner: state3.winner,
                         selectedPiece: new Just(v2.value0)
                       });
                     }
                     ;
-                    throw new Error("Failed pattern match at Main (line 369, column 37 - line 374, column 97): " + [state3.selectedPiece.constructor.name]);
+                    throw new Error("Failed pattern match at Main (line 472, column 37 - line 477, column 97): " + [state3.selectedPiece.constructor.name]);
                   }
                   ;
-                  throw new Error("Failed pattern match at Main (line 366, column 29 - line 374, column 97): " + [v2.constructor.name]);
+                  throw new Error("Failed pattern match at Main (line 469, column 29 - line 477, column 97): " + [v2.constructor.name]);
                 }
                 ;
                 if (v1 instanceof Just) {
                   if (state3.selectedPiece instanceof Nothing) {
-                    var $639 = isOpponent(v1.value0);
-                    if ($639) {
+                    var $777 = isOpponent(v1.value0);
+                    if ($777) {
                       return pure4({
                         actions: state3.actions,
                         attackedPositions: state3.attackedPositions,
                         availableMoves: state3.availableMoves,
                         board: state3.board,
                         canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chat: state3.chat,
+                        chatLog: state3.chatLog,
+                        chatState: state3.chatState,
                         flagPosition: state3.flagPosition,
                         hand: state3.hand,
                         lastReceivedMessage: state3.lastReceivedMessage,
                         messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
                         playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
                         score: state3.score,
-                        state: state3.state,
+                        status: state3.status,
                         tickCount: state3.tickCount,
                         turn: state3.turn,
+                        upperCase: state3.upperCase,
                         winner: state3.winner,
                         selectedPiece: Nothing.value
                       });
@@ -6102,60 +8209,90 @@
                       availableMoves: state3.availableMoves,
                       board: state3.board,
                       canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
                       flagPosition: state3.flagPosition,
                       hand: state3.hand,
                       lastReceivedMessage: state3.lastReceivedMessage,
                       messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
                       playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
                       score: state3.score,
-                      state: state3.state,
+                      status: state3.status,
                       tickCount: state3.tickCount,
                       turn: state3.turn,
+                      upperCase: state3.upperCase,
                       winner: state3.winner,
                       selectedPiece: new Just(v1.value0)
                     });
                   }
                   ;
                   if (state3.selectedPiece instanceof Just) {
-                    var $640 = isOpponent(v1.value0);
-                    if ($640) {
+                    var $778 = isOpponent(v1.value0);
+                    if ($778) {
                       return pure4({
                         actions: state3.actions,
                         attackedPositions: state3.attackedPositions,
                         availableMoves: state3.availableMoves,
                         board: state3.board,
                         canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chat: state3.chat,
+                        chatLog: state3.chatLog,
+                        chatState: state3.chatState,
                         flagPosition: state3.flagPosition,
                         hand: state3.hand,
                         lastReceivedMessage: state3.lastReceivedMessage,
                         messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
                         playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
                         score: state3.score,
-                        state: state3.state,
+                        status: state3.status,
                         tickCount: state3.tickCount,
                         turn: state3.turn,
+                        upperCase: state3.upperCase,
                         winner: state3.winner,
                         selectedPiece: Nothing.value
                       });
                     }
                     ;
-                    var $641 = eq10(state3.selectedPiece.value0)(v1.value0);
-                    if ($641) {
+                    var $779 = eq11(state3.selectedPiece.value0)(v1.value0);
+                    if ($779) {
                       return pure4({
                         actions: state3.actions,
                         attackedPositions: state3.attackedPositions,
                         availableMoves: state3.availableMoves,
                         board: state3.board,
                         canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chat: state3.chat,
+                        chatLog: state3.chatLog,
+                        chatState: state3.chatState,
                         flagPosition: state3.flagPosition,
                         hand: state3.hand,
                         lastReceivedMessage: state3.lastReceivedMessage,
                         messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
                         playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
                         score: state3.score,
-                        state: state3.state,
+                        status: state3.status,
                         tickCount: state3.tickCount,
                         turn: state3.turn,
+                        upperCase: state3.upperCase,
                         winner: state3.winner,
                         selectedPiece: Nothing.value
                       });
@@ -6167,28 +8304,38 @@
                       availableMoves: state3.availableMoves,
                       board: state3.board,
                       canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
                       flagPosition: state3.flagPosition,
                       hand: state3.hand,
                       lastReceivedMessage: state3.lastReceivedMessage,
                       messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
+                      opponentName: state3.opponentName,
                       playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
                       score: state3.score,
-                      state: state3.state,
+                      status: state3.status,
                       tickCount: state3.tickCount,
                       turn: state3.turn,
+                      upperCase: state3.upperCase,
                       winner: state3.winner,
                       selectedPiece: new Just(v1.value0)
                     });
                   }
                   ;
-                  throw new Error("Failed pattern match at Main (line 376, column 29 - line 381, column 90): " + [state3.selectedPiece.constructor.name]);
+                  throw new Error("Failed pattern match at Main (line 479, column 29 - line 484, column 90): " + [state3.selectedPiece.constructor.name]);
                 }
                 ;
-                throw new Error("Failed pattern match at Main (line 364, column 21 - line 381, column 90): " + [v1.constructor.name]);
+                throw new Error("Failed pattern match at Main (line 467, column 21 - line 484, column 90): " + [v1.constructor.name]);
               };
               var updateMove = function(state3) {
-                var $644 = !state3.turn;
-                if ($644) {
+                var $782 = !state3.turn;
+                if ($782) {
                   return pure4(state3);
                 }
                 ;
@@ -6197,24 +8344,23 @@
                 }
                 ;
                 if (state3.selectedPiece instanceof Just) {
-                  var $646 = !any2(function(z) {
-                    return eq7(p.value0)(z);
+                  var $784 = !any2(function(z) {
+                    return eq8(p.value0)(z);
                   })(state3.availableMoves);
-                  if ($646) {
+                  if ($784) {
                     return pure4(state3);
                   }
                   ;
                   var v1 = lookup1(p.value0)(state3.board);
                   if (v1 instanceof Nothing) {
                     if (state3.canSend) {
-                      return function __do() {
+                      return function __do2() {
                         send("Action: Move " + (show5(getPos(state3.selectedPiece.value0)) + (" to " + show5(p.value0))))();
-                        var movedState = movePiece(getPos(state3.selectedPiece.value0))(p.value0)(state3)();
-                        return movedState;
+                        return movePiece(getPos(state3.selectedPiece.value0))(p.value0)(state3)();
                       };
                     }
                     ;
-                    return function __do() {
+                    return function __do2() {
                       log2("Waiting if message is received...")();
                       return state3;
                     };
@@ -6222,663 +8368,1237 @@
                   ;
                   if (v1 instanceof Just) {
                     if (state3.canSend) {
-                      return function __do() {
+                      return function __do2() {
                         send("Action: Capture " + (show5(getPos(state3.selectedPiece.value0)) + (" to " + show5(p.value0))))();
-                        var capturedState = capturePiece(getPos(state3.selectedPiece.value0))(p.value0)(state3)();
-                        return capturedState;
+                        return capturePiece(getPos(state3.selectedPiece.value0))(p.value0)(state3)();
                       };
                     }
                     ;
-                    return function __do() {
+                    return function __do2() {
                       log2("Waiting if message is received...")();
                       return state3;
                     };
                   }
                   ;
-                  throw new Error("Failed pattern match at Main (line 393, column 38 - line 409, column 59): " + [v1.constructor.name]);
+                  throw new Error("Failed pattern match at Main (line 496, column 38 - line 512, column 59): " + [v1.constructor.name]);
                 }
                 ;
-                throw new Error("Failed pattern match at Main (line 387, column 25 - line 409, column 59): " + [state3.selectedPiece.constructor.name]);
+                throw new Error("Failed pattern match at Main (line 490, column 25 - line 512, column 59): " + [state3.selectedPiece.constructor.name]);
               };
               return bind3(bind3(pure4(state$prime))(updateMove))(updateSelectedPiece);
             }
             ;
-            throw new Error("Failed pattern match at Main (line 354, column 9 - line 409, column 59): " + [p.constructor.name]);
+            throw new Error("Failed pattern match at Main (line 457, column 9 - line 512, column 59): " + [p.constructor.name]);
           }();
           return newState;
         }
         ;
-        throw new Error("Failed pattern match at Main (line 339, column 1 - line 339, column 98): " + [send.constructor.name, v.constructor.name, state$prime.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 443, column 1 - line 443, column 98): " + [send.constructor.name, v.constructor.name, state$prime.constructor.name]);
       };
     };
   };
   var onTick = function(send) {
     return function(state$prime) {
-      if (eq6(state$prime.state)(End.value)) {
-        return pure4(state$prime);
-      }
-      ;
-      if (otherwise) {
-        var updateWinner = function(state3) {
-          var pieces = getImportantPiecesMoves(state3.board)(false)(false)(state3.attackedPositions);
-          var getFlagMoves = function() {
-            var v = lookup1(state3.flagPosition)(state3.board);
-            if (v instanceof Nothing) {
-              return [];
-            }
-            ;
-            if (v instanceof Just) {
-              return getAvailableMoves(state3.board)(state3.attackedPositions)(v.value0);
-            }
-            ;
-            throw new Error("Failed pattern match at Main (line 329, column 28 - line 331, column 88): " + [v.constructor.name]);
-          }();
-          var $659 = eq6(state3.state)(Waiting.value) || eq6(state3.state)(End.value);
-          if ($659) {
-            return pure4(state3);
+      var updateWinner = function(state3) {
+        var pieces = getImportantPiecesMoves(state3.board)([King.value, Queen.value])(new Just(false))(state3.attackedPositions);
+        var getFlagMoves = function() {
+          var v = lookup1(state3.flagPosition)(state3.board);
+          if (v instanceof Nothing) {
+            return [];
           }
           ;
-          if (state3.flagPosition instanceof Grid) {
-            var $661 = state3.flagPosition.value0.r < 3;
-            if ($661) {
-              return function __do() {
-                send("Win")();
-                return {
-                  actions: state3.actions,
-                  attackedPositions: state3.attackedPositions,
-                  availableMoves: state3.availableMoves,
-                  board: state3.board,
-                  canSend: state3.canSend,
-                  flagPosition: state3.flagPosition,
-                  hand: state3.hand,
-                  lastReceivedMessage: state3.lastReceivedMessage,
-                  messages: state3.messages,
-                  playerId: state3.playerId,
-                  score: state3.score,
-                  selectedPiece: state3.selectedPiece,
-                  tickCount: state3.tickCount,
-                  turn: state3.turn,
-                  winner: new Just(true),
-                  state: End.value
-                };
-              };
-            }
-            ;
-            var $662 = eq9(pieces)([]) || eq9(getFlagMoves)([]);
-            if ($662) {
-              return function __do() {
-                send("Lose")();
-                return {
-                  actions: state3.actions,
-                  attackedPositions: state3.attackedPositions,
-                  availableMoves: state3.availableMoves,
-                  board: state3.board,
-                  canSend: state3.canSend,
-                  flagPosition: state3.flagPosition,
-                  hand: state3.hand,
-                  lastReceivedMessage: state3.lastReceivedMessage,
-                  messages: state3.messages,
-                  playerId: state3.playerId,
-                  score: state3.score,
-                  selectedPiece: state3.selectedPiece,
-                  tickCount: state3.tickCount,
-                  turn: state3.turn,
-                  winner: new Just(false),
-                  state: End.value
-                };
-              };
-            }
-            ;
-            return pure4(state3);
+          if (v instanceof Just) {
+            return getAvailableMoves(state3.board)(state3.attackedPositions)(v.value0);
           }
           ;
+          throw new Error("Failed pattern match at Main (line 433, column 28 - line 435, column 88): " + [v.constructor.name]);
+        }();
+        var $795 = eq7(state3.status)(Waiting.value) || eq7(state3.status)(End.value);
+        if ($795) {
           return pure4(state3);
-        };
-        var updateTurn = function(state3) {
-          var $666 = state3.actions === 0 && state3.turn;
-          if ($666) {
-            return pure4({
-              attackedPositions: state3.attackedPositions,
-              availableMoves: state3.availableMoves,
-              board: state3.board,
-              canSend: state3.canSend,
-              flagPosition: state3.flagPosition,
-              hand: state3.hand,
-              lastReceivedMessage: state3.lastReceivedMessage,
-              messages: state3.messages,
-              playerId: state3.playerId,
-              score: state3.score,
-              selectedPiece: state3.selectedPiece,
-              state: state3.state,
-              tickCount: state3.tickCount,
-              winner: state3.winner,
-              actions: -3 | 0,
-              turn: false
-            });
-          }
-          ;
-          var $667 = state3.actions === 0 && !state3.turn;
-          if ($667) {
-            return pure4({
-              attackedPositions: state3.attackedPositions,
-              availableMoves: state3.availableMoves,
-              board: state3.board,
-              canSend: state3.canSend,
-              flagPosition: state3.flagPosition,
-              hand: state3.hand,
-              lastReceivedMessage: state3.lastReceivedMessage,
-              messages: state3.messages,
-              playerId: state3.playerId,
-              score: state3.score,
-              selectedPiece: state3.selectedPiece,
-              state: state3.state,
-              tickCount: state3.tickCount,
-              winner: state3.winner,
-              actions: 3,
-              turn: true
-            });
-          }
-          ;
-          return pure4(state3);
-        };
-        var updateTickCount = function(state3) {
-          return {
-            actions: state3.actions,
-            canSend: state3.canSend,
-            score: state3.score,
-            turn: state3.turn,
-            playerId: state3.playerId,
-            board: state3.board,
-            hand: state3.hand,
-            selectedPiece: state3.selectedPiece,
-            availableMoves: state3.availableMoves,
-            flagPosition: state3.flagPosition,
-            attackedPositions: state3.attackedPositions,
-            state: state3.state,
-            winner: state3.winner,
-            messages: state3.messages,
-            lastReceivedMessage: state3.lastReceivedMessage,
-            tickCount: state3.tickCount + 1 | 0
-          };
-        };
-        var updateFlagPosition = function(state3) {
-          var isPos = function(prev) {
-            return function(next) {
-              if (prev instanceof Nothing) {
-                if (next instanceof Nothing) {
-                  return Nothing.value;
-                }
-                ;
-                if (next instanceof Just) {
-                  return new Just(getPos(next.value0));
-                }
-                ;
-                throw new Error("Failed pattern match at Main (line 310, column 24 - line 312, column 42): " + [next.constructor.name]);
-              }
-              ;
-              if (prev instanceof Just) {
-                return new Just(prev.value0);
-              }
-              ;
-              throw new Error("Failed pattern match at Main (line 309, column 27 - line 313, column 33): " + [prev.constructor.name]);
-            };
-          };
-          var isFlag = function(piece) {
-            var $672 = eq5(getType(piece))(Flag.value) && !isOpponent(piece);
-            if ($672) {
-              return new Just(piece);
-            }
-            ;
-            return Nothing.value;
-          };
-          var maybeFlagPosition = foldl22(isPos)(Nothing.value)(mapFlipped1(state3.board)(isFlag));
-          var flagPosition = function() {
-            if (maybeFlagPosition instanceof Nothing) {
-              return new Grid({
-                r: -1 | 0,
-                c: -1 | 0
-              });
-            }
-            ;
-            if (maybeFlagPosition instanceof Just) {
-              return maybeFlagPosition.value0;
-            }
-            ;
-            throw new Error("Failed pattern match at Main (line 301, column 24 - line 303, column 28): " + [maybeFlagPosition.constructor.name]);
-          }();
-          return {
-            tickCount: state3.tickCount,
-            actions: state3.actions,
-            canSend: state3.canSend,
-            score: state3.score,
-            turn: state3.turn,
-            playerId: state3.playerId,
-            board: state3.board,
-            hand: state3.hand,
-            selectedPiece: state3.selectedPiece,
-            availableMoves: state3.availableMoves,
-            attackedPositions: state3.attackedPositions,
-            state: state3.state,
-            winner: state3.winner,
-            messages: state3.messages,
-            lastReceivedMessage: state3.lastReceivedMessage,
-            flagPosition
-          };
-        };
-        var updateAvailableMoves = function(state3) {
-          if (state3.selectedPiece instanceof Nothing) {
-            return {
-              tickCount: state3.tickCount,
-              actions: state3.actions,
-              canSend: state3.canSend,
-              score: state3.score,
-              turn: state3.turn,
-              playerId: state3.playerId,
-              board: state3.board,
-              hand: state3.hand,
-              selectedPiece: state3.selectedPiece,
-              flagPosition: state3.flagPosition,
-              attackedPositions: state3.attackedPositions,
-              state: state3.state,
-              winner: state3.winner,
-              messages: state3.messages,
-              lastReceivedMessage: state3.lastReceivedMessage,
-              availableMoves: []
-            };
-          }
-          ;
-          if (state3.selectedPiece instanceof Just) {
-            return {
-              tickCount: state3.tickCount,
-              actions: state3.actions,
-              canSend: state3.canSend,
-              score: state3.score,
-              turn: state3.turn,
-              playerId: state3.playerId,
-              board: state3.board,
-              hand: state3.hand,
-              selectedPiece: state3.selectedPiece,
-              flagPosition: state3.flagPosition,
-              attackedPositions: state3.attackedPositions,
-              state: state3.state,
-              winner: state3.winner,
-              messages: state3.messages,
-              lastReceivedMessage: state3.lastReceivedMessage,
-              availableMoves: getAvailableMoves(state3.board)(state3.attackedPositions)(state3.selectedPiece.value0)
-            };
-          }
-          ;
-          throw new Error("Failed pattern match at Main (line 282, column 9 - line 284, column 113): " + [state3.selectedPiece.constructor.name]);
-        };
-        var updateAttackedPositions = function(state3) {
-          var opponentPieces = mapFlipped2(filter(isOpponent)(foldl22(append13)([])(mapFlipped1(state3.board)(pieceToArray))))(flipPiece);
-          var allPieces = mapFlipped2(mapFlipped2(foldl22(append13)([])(mapFlipped1(state3.board)(pieceToArray)))(flipPiece))(toOpponent);
-          var pieces = foldl3(pieceToMap)(empty3)(allPieces);
-          var attackedPositions = mapFlipped2(foldl3(append13)([])(mapFlipped2(opponentPieces)(getAvailableMoves(pieces)([]))))(flipPosition);
-          return {
-            tickCount: state3.tickCount,
-            actions: state3.actions,
-            canSend: state3.canSend,
-            score: state3.score,
-            turn: state3.turn,
-            playerId: state3.playerId,
-            board: state3.board,
-            hand: state3.hand,
-            selectedPiece: state3.selectedPiece,
-            availableMoves: state3.availableMoves,
-            flagPosition: state3.flagPosition,
-            state: state3.state,
-            winner: state3.winner,
-            messages: state3.messages,
-            lastReceivedMessage: state3.lastReceivedMessage,
-            attackedPositions
-          };
-        };
-        var receiveMessage = function(state3) {
-          if (state3.lastReceivedMessage instanceof Nothing) {
-            return pure4(state3);
-          }
-          ;
-          if (state3.lastReceivedMessage instanceof Just) {
-            return function __do() {
-              log2(show42(state3.messages))();
-              if (state3.playerId instanceof Nothing) {
-                return state3;
-              }
-              ;
+        }
+        ;
+        if (state3.flagPosition instanceof Grid) {
+          var $797 = state3.flagPosition.value0.r < 3;
+          if ($797) {
+            return function __do2() {
+              send("Win")();
               return {
                 actions: state3.actions,
                 attackedPositions: state3.attackedPositions,
                 availableMoves: state3.availableMoves,
                 board: state3.board,
                 canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
                 flagPosition: state3.flagPosition,
                 hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
                 messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
                 playerId: state3.playerId,
-                score: state3.score,
+                previousMove: state3.previousMove,
+                request: state3.request,
                 selectedPiece: state3.selectedPiece,
-                state: state3.state,
                 tickCount: state3.tickCount,
                 turn: state3.turn,
-                winner: state3.winner,
-                lastReceivedMessage: Nothing.value
+                upperCase: state3.upperCase,
+                winner: new Just(true),
+                score: {
+                  opponent: state3.score.opponent,
+                  me: state3.score.me + 1 | 0
+                },
+                status: End.value
               };
             };
           }
           ;
-          throw new Error("Failed pattern match at Main (line 194, column 9 - line 200, column 70): " + [state3.lastReceivedMessage.constructor.name]);
-        };
-        var processAction = function(action2) {
-          return function(message2) {
-            return function(state3) {
-              var $680 = contains("Move")(action2.payload);
-              if ($680) {
-                return function __do() {
-                  var maybeMove = stripPrefix("Move ")(action2.payload);
-                  if (maybeMove instanceof Nothing) {
-                    return state3;
-                  }
-                  ;
-                  if (maybeMove instanceof Just) {
-                    var tokens = split(" to ")(maybeMove.value0);
-                    var pos1 = tokensToPos(tokens)(0)();
-                    var pos2 = tokensToPos(tokens)(1)();
-                    var movedState = movePiece(flipPosition(pos1))(flipPosition(pos2))(state3)();
-                    log2(show1(message2) + ("---" + show42(state3.messages)))();
-                    return {
-                      actions: movedState.actions,
-                      attackedPositions: movedState.attackedPositions,
-                      availableMoves: movedState.availableMoves,
-                      board: movedState.board,
-                      canSend: movedState.canSend,
-                      flagPosition: movedState.flagPosition,
-                      hand: movedState.hand,
-                      lastReceivedMessage: movedState.lastReceivedMessage,
-                      playerId: movedState.playerId,
-                      score: movedState.score,
-                      selectedPiece: movedState.selectedPiece,
-                      state: movedState.state,
-                      tickCount: movedState.tickCount,
-                      turn: movedState.turn,
-                      winner: movedState.winner,
-                      messages: filter(messageFilter(message2))(state3.messages)
-                    };
-                  }
-                  ;
-                  throw new Error("Failed pattern match at Main (line 221, column 13 - line 230, column 99): " + [maybeMove.constructor.name]);
-                };
-              }
-              ;
-              var $683 = contains("Capture")(message2.payload);
-              if ($683) {
-                return function __do() {
-                  var maybeCapture = stripPrefix("Capture ")(action2.payload);
-                  if (maybeCapture instanceof Nothing) {
-                    return state3;
-                  }
-                  ;
-                  if (maybeCapture instanceof Just) {
-                    var tokens = split(" to ")(maybeCapture.value0);
-                    var pos1 = tokensToPos(tokens)(0)();
-                    var pos2 = tokensToPos(tokens)(1)();
-                    var capturedState = capturePiece(flipPosition(pos1))(flipPosition(pos2))(state3)();
-                    log2(show1(message2) + ("---" + show42(state3.messages)))();
-                    return {
-                      actions: capturedState.actions,
-                      attackedPositions: capturedState.attackedPositions,
-                      availableMoves: capturedState.availableMoves,
-                      board: capturedState.board,
-                      canSend: capturedState.canSend,
-                      flagPosition: capturedState.flagPosition,
-                      hand: capturedState.hand,
-                      lastReceivedMessage: capturedState.lastReceivedMessage,
-                      playerId: capturedState.playerId,
-                      score: capturedState.score,
-                      selectedPiece: capturedState.selectedPiece,
-                      state: capturedState.state,
-                      tickCount: capturedState.tickCount,
-                      turn: capturedState.turn,
-                      winner: capturedState.winner,
-                      messages: filter(messageFilter(message2))(state3.messages)
-                    };
-                  }
-                  ;
-                  throw new Error("Failed pattern match at Main (line 233, column 13 - line 242, column 102): " + [maybeCapture.constructor.name]);
-                };
-              }
-              ;
-              return function __do() {
-                log2("Unknown Action: " + show1(message2))();
-                return state3;
+          var $798 = eq9(pieces)([]) || eq9(getFlagMoves)([]);
+          if ($798) {
+            return function __do2() {
+              send("Lose")();
+              return {
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                messages: state3.messages,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                playerId: state3.playerId,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                selectedPiece: state3.selectedPiece,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: new Just(false),
+                score: {
+                  me: state3.score.me,
+                  opponent: state3.score.opponent + 1 | 0
+                },
+                status: End.value
               };
+            };
+          }
+          ;
+          return pure4(state3);
+        }
+        ;
+        return pure4(state3);
+      };
+      var updateTurn = function(state3) {
+        var $802 = state3.actions === 0 && state3.turn;
+        if ($802) {
+          return pure4({
+            attackedPositions: state3.attackedPositions,
+            availableMoves: state3.availableMoves,
+            board: state3.board,
+            canSend: state3.canSend,
+            changeName: state3.changeName,
+            chat: state3.chat,
+            chatLog: state3.chatLog,
+            chatState: state3.chatState,
+            flagPosition: state3.flagPosition,
+            hand: state3.hand,
+            lastReceivedMessage: state3.lastReceivedMessage,
+            messages: state3.messages,
+            name: state3.name,
+            nameChanged: state3.nameChanged,
+            opponentName: state3.opponentName,
+            playerId: state3.playerId,
+            previousMove: state3.previousMove,
+            request: state3.request,
+            score: state3.score,
+            selectedPiece: state3.selectedPiece,
+            status: state3.status,
+            tickCount: state3.tickCount,
+            upperCase: state3.upperCase,
+            winner: state3.winner,
+            actions: -3 | 0,
+            turn: false
+          });
+        }
+        ;
+        var $803 = state3.actions === 0 && !state3.turn;
+        if ($803) {
+          return pure4({
+            attackedPositions: state3.attackedPositions,
+            availableMoves: state3.availableMoves,
+            board: state3.board,
+            canSend: state3.canSend,
+            changeName: state3.changeName,
+            chat: state3.chat,
+            chatLog: state3.chatLog,
+            chatState: state3.chatState,
+            flagPosition: state3.flagPosition,
+            hand: state3.hand,
+            lastReceivedMessage: state3.lastReceivedMessage,
+            messages: state3.messages,
+            name: state3.name,
+            nameChanged: state3.nameChanged,
+            opponentName: state3.opponentName,
+            playerId: state3.playerId,
+            previousMove: state3.previousMove,
+            request: state3.request,
+            score: state3.score,
+            selectedPiece: state3.selectedPiece,
+            status: state3.status,
+            tickCount: state3.tickCount,
+            upperCase: state3.upperCase,
+            winner: state3.winner,
+            actions: 3,
+            turn: true
+          });
+        }
+        ;
+        return pure4(state3);
+      };
+      var updateTickCount = function(state3) {
+        return {
+          actions: state3.actions,
+          name: state3.name,
+          chat: state3.chat,
+          upperCase: state3.upperCase,
+          chatLog: state3.chatLog,
+          chatState: state3.chatState,
+          opponentName: state3.opponentName,
+          changeName: state3.changeName,
+          nameChanged: state3.nameChanged,
+          canSend: state3.canSend,
+          score: state3.score,
+          turn: state3.turn,
+          playerId: state3.playerId,
+          previousMove: state3.previousMove,
+          board: state3.board,
+          hand: state3.hand,
+          selectedPiece: state3.selectedPiece,
+          availableMoves: state3.availableMoves,
+          flagPosition: state3.flagPosition,
+          attackedPositions: state3.attackedPositions,
+          status: state3.status,
+          winner: state3.winner,
+          messages: state3.messages,
+          request: state3.request,
+          lastReceivedMessage: state3.lastReceivedMessage,
+          tickCount: state3.tickCount + 1 | 0
+        };
+      };
+      var updateFlagPosition = function(state3) {
+        var isPos = function(prev) {
+          return function(next) {
+            if (prev instanceof Nothing) {
+              if (next instanceof Nothing) {
+                return Nothing.value;
+              }
+              ;
+              if (next instanceof Just) {
+                return new Just(getPos(next.value0));
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 414, column 24 - line 416, column 42): " + [next.constructor.name]);
+            }
+            ;
+            if (prev instanceof Just) {
+              return new Just(prev.value0);
+            }
+            ;
+            throw new Error("Failed pattern match at Main (line 413, column 27 - line 417, column 33): " + [prev.constructor.name]);
+          };
+        };
+        var isFlag = function(piece) {
+          var $808 = eq6(getType(piece))(Flag.value) && !isOpponent(piece);
+          if ($808) {
+            return new Just(piece);
+          }
+          ;
+          return Nothing.value;
+        };
+        var maybeFlagPosition = foldl3(isPos)(Nothing.value)(mapFlipped2(state3.board)(isFlag));
+        var flagPosition = function() {
+          if (maybeFlagPosition instanceof Nothing) {
+            return new Grid({
+              r: -1 | 0,
+              c: -1 | 0
+            });
+          }
+          ;
+          if (maybeFlagPosition instanceof Just) {
+            return maybeFlagPosition.value0;
+          }
+          ;
+          throw new Error("Failed pattern match at Main (line 405, column 24 - line 407, column 28): " + [maybeFlagPosition.constructor.name]);
+        }();
+        return {
+          tickCount: state3.tickCount,
+          actions: state3.actions,
+          name: state3.name,
+          chat: state3.chat,
+          upperCase: state3.upperCase,
+          chatLog: state3.chatLog,
+          chatState: state3.chatState,
+          opponentName: state3.opponentName,
+          changeName: state3.changeName,
+          nameChanged: state3.nameChanged,
+          canSend: state3.canSend,
+          score: state3.score,
+          turn: state3.turn,
+          playerId: state3.playerId,
+          previousMove: state3.previousMove,
+          board: state3.board,
+          hand: state3.hand,
+          selectedPiece: state3.selectedPiece,
+          availableMoves: state3.availableMoves,
+          attackedPositions: state3.attackedPositions,
+          status: state3.status,
+          winner: state3.winner,
+          messages: state3.messages,
+          request: state3.request,
+          lastReceivedMessage: state3.lastReceivedMessage,
+          flagPosition
+        };
+      };
+      var updateAvailableMoves = function(state3) {
+        if (state3.selectedPiece instanceof Nothing) {
+          return {
+            tickCount: state3.tickCount,
+            actions: state3.actions,
+            name: state3.name,
+            chat: state3.chat,
+            upperCase: state3.upperCase,
+            chatLog: state3.chatLog,
+            chatState: state3.chatState,
+            opponentName: state3.opponentName,
+            changeName: state3.changeName,
+            nameChanged: state3.nameChanged,
+            canSend: state3.canSend,
+            score: state3.score,
+            turn: state3.turn,
+            playerId: state3.playerId,
+            previousMove: state3.previousMove,
+            board: state3.board,
+            hand: state3.hand,
+            selectedPiece: state3.selectedPiece,
+            flagPosition: state3.flagPosition,
+            attackedPositions: state3.attackedPositions,
+            status: state3.status,
+            winner: state3.winner,
+            messages: state3.messages,
+            request: state3.request,
+            lastReceivedMessage: state3.lastReceivedMessage,
+            availableMoves: []
+          };
+        }
+        ;
+        if (state3.selectedPiece instanceof Just) {
+          return {
+            tickCount: state3.tickCount,
+            actions: state3.actions,
+            name: state3.name,
+            chat: state3.chat,
+            upperCase: state3.upperCase,
+            chatLog: state3.chatLog,
+            chatState: state3.chatState,
+            opponentName: state3.opponentName,
+            changeName: state3.changeName,
+            nameChanged: state3.nameChanged,
+            canSend: state3.canSend,
+            score: state3.score,
+            turn: state3.turn,
+            playerId: state3.playerId,
+            previousMove: state3.previousMove,
+            board: state3.board,
+            hand: state3.hand,
+            selectedPiece: state3.selectedPiece,
+            flagPosition: state3.flagPosition,
+            attackedPositions: state3.attackedPositions,
+            status: state3.status,
+            winner: state3.winner,
+            messages: state3.messages,
+            request: state3.request,
+            lastReceivedMessage: state3.lastReceivedMessage,
+            availableMoves: getAvailableMoves(state3.board)(state3.attackedPositions)(state3.selectedPiece.value0)
+          };
+        }
+        ;
+        throw new Error("Failed pattern match at Main (line 386, column 9 - line 388, column 113): " + [state3.selectedPiece.constructor.name]);
+      };
+      var updateAttackedPositions = function(state3) {
+        var opponentPieces = mapFlipped1(filter(isOpponent)(foldl3(append13)([])(mapFlipped2(state3.board)(pieceToArray))))(flipPiece);
+        var allPieces = mapFlipped1(mapFlipped1(foldl3(append13)([])(mapFlipped2(state3.board)(pieceToArray)))(flipPiece))(toOpponent);
+        var pieces = foldl12(pieceToMap)(empty3)(allPieces);
+        var attackedPositions = mapFlipped1(foldl12(append13)([])(mapFlipped1(opponentPieces)(getAvailableMoves(pieces)([]))))(flipPosition);
+        return {
+          tickCount: state3.tickCount,
+          actions: state3.actions,
+          name: state3.name,
+          chat: state3.chat,
+          upperCase: state3.upperCase,
+          chatLog: state3.chatLog,
+          chatState: state3.chatState,
+          opponentName: state3.opponentName,
+          changeName: state3.changeName,
+          nameChanged: state3.nameChanged,
+          canSend: state3.canSend,
+          score: state3.score,
+          turn: state3.turn,
+          playerId: state3.playerId,
+          previousMove: state3.previousMove,
+          board: state3.board,
+          hand: state3.hand,
+          selectedPiece: state3.selectedPiece,
+          availableMoves: state3.availableMoves,
+          flagPosition: state3.flagPosition,
+          status: state3.status,
+          winner: state3.winner,
+          messages: state3.messages,
+          request: state3.request,
+          lastReceivedMessage: state3.lastReceivedMessage,
+          attackedPositions
+        };
+      };
+      var receiveMessage = function(state3) {
+        if (state3.lastReceivedMessage instanceof Nothing) {
+          return pure4(state3);
+        }
+        ;
+        if (state3.lastReceivedMessage instanceof Just) {
+          return function __do2() {
+            log2(show42(state3.messages))();
+            if (state3.playerId instanceof Nothing) {
+              return state3;
+            }
+            ;
+            return {
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              request: state3.request,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              upperCase: state3.upperCase,
+              winner: state3.winner,
+              lastReceivedMessage: Nothing.value
+            };
+          };
+        }
+        ;
+        throw new Error("Failed pattern match at Main (line 216, column 9 - line 222, column 70): " + [state3.lastReceivedMessage.constructor.name]);
+      };
+      var processRequest = function(message2) {
+        return function(state3) {
+          return function __do2() {
+            log2(show1(message2))();
+            var $816 = contains("Accept")(message2.payload);
+            if ($816) {
+              if (state3.request instanceof Nothing) {
+                log2("No requests to be accepted")();
+                return state3;
+              }
+              ;
+              if (state3.request instanceof Just) {
+                log2("Accepting Request: " + show1(state3.request.value0))();
+                var $818 = eq5(message2.playerId)(state3.request.value0.playerId);
+                if ($818) {
+                  return state3;
+                }
+                ;
+                var $819 = contains("New Match")(state3.request.value0.payload);
+                if ($819) {
+                  log2("New Match Started")();
+                  return defaultNewMatch(state3);
+                }
+                ;
+                log2("Unknown Request: " + show1(message2))();
+                return {
+                  actions: state3.actions,
+                  attackedPositions: state3.attackedPositions,
+                  availableMoves: state3.availableMoves,
+                  board: state3.board,
+                  canSend: state3.canSend,
+                  changeName: state3.changeName,
+                  chat: state3.chat,
+                  chatLog: state3.chatLog,
+                  chatState: state3.chatState,
+                  flagPosition: state3.flagPosition,
+                  hand: state3.hand,
+                  lastReceivedMessage: state3.lastReceivedMessage,
+                  messages: state3.messages,
+                  name: state3.name,
+                  nameChanged: state3.nameChanged,
+                  opponentName: state3.opponentName,
+                  playerId: state3.playerId,
+                  previousMove: state3.previousMove,
+                  score: state3.score,
+                  selectedPiece: state3.selectedPiece,
+                  status: state3.status,
+                  tickCount: state3.tickCount,
+                  turn: state3.turn,
+                  upperCase: state3.upperCase,
+                  winner: state3.winner,
+                  request: Nothing.value
+                };
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 274, column 13 - line 286, column 57): " + [state3.request.constructor.name]);
+            }
+            ;
+            var $821 = contains("Decline")(message2.payload);
+            if ($821) {
+              if (state3.request instanceof Nothing) {
+                log2("No request to be declined")();
+                return state3;
+              }
+              ;
+              if (state3.request instanceof Just) {
+                log2("Declining Request: " + show1(state3.request.value0))();
+                return {
+                  actions: state3.actions,
+                  attackedPositions: state3.attackedPositions,
+                  availableMoves: state3.availableMoves,
+                  board: state3.board,
+                  canSend: state3.canSend,
+                  changeName: state3.changeName,
+                  chat: state3.chat,
+                  chatLog: state3.chatLog,
+                  chatState: state3.chatState,
+                  flagPosition: state3.flagPosition,
+                  hand: state3.hand,
+                  lastReceivedMessage: state3.lastReceivedMessage,
+                  messages: state3.messages,
+                  name: state3.name,
+                  nameChanged: state3.nameChanged,
+                  opponentName: state3.opponentName,
+                  playerId: state3.playerId,
+                  previousMove: state3.previousMove,
+                  score: state3.score,
+                  selectedPiece: state3.selectedPiece,
+                  status: state3.status,
+                  tickCount: state3.tickCount,
+                  turn: state3.turn,
+                  upperCase: state3.upperCase,
+                  winner: state3.winner,
+                  request: Nothing.value
+                };
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 288, column 13 - line 294, column 53): " + [state3.request.constructor.name]);
+            }
+            ;
+            log2("Added Request: " + show1(message2))();
+            return {
+              actions: state3.actions,
+              attackedPositions: state3.attackedPositions,
+              availableMoves: state3.availableMoves,
+              board: state3.board,
+              canSend: state3.canSend,
+              changeName: state3.changeName,
+              chat: state3.chat,
+              chatLog: state3.chatLog,
+              chatState: state3.chatState,
+              flagPosition: state3.flagPosition,
+              hand: state3.hand,
+              lastReceivedMessage: state3.lastReceivedMessage,
+              messages: state3.messages,
+              name: state3.name,
+              nameChanged: state3.nameChanged,
+              opponentName: state3.opponentName,
+              playerId: state3.playerId,
+              previousMove: state3.previousMove,
+              score: state3.score,
+              selectedPiece: state3.selectedPiece,
+              status: state3.status,
+              tickCount: state3.tickCount,
+              turn: state3.turn,
+              upperCase: state3.upperCase,
+              winner: state3.winner,
+              request: new Just(message2)
             };
           };
         };
-        var processMessage = function(effect) {
-          return function(message2) {
-            return function __do() {
-              var state3 = effect();
-              log2("processing " + message2.payload)();
+      };
+      var processName = function(message2) {
+        return function(state3) {
+          var $824 = contains("Name:")(message2.payload);
+          if ($824) {
+            return function __do2() {
+              var maybeName = stripPrefix("Name: ")(message2.payload);
               if (state3.playerId instanceof Nothing) {
                 return state3;
               }
               ;
               if (state3.playerId instanceof Just) {
-                var state1 = function() {
-                  var $687 = eq6(state3.state)(Waiting.value);
-                  if ($687) {
+                var $826 = eq5(message2.playerId)(state3.playerId.value0) && !state3.nameChanged;
+                if ($826) {
+                  send("Name: " + state3.name)();
+                  return state3;
+                }
+                ;
+                var $827 = !eq5(message2.playerId)(state3.playerId.value0);
+                if ($827) {
+                  if (maybeName instanceof Nothing) {
+                    return state3;
+                  }
+                  ;
+                  if (maybeName instanceof Just) {
+                    send("Name Changed")();
                     return {
+                      actions: state3.actions,
                       attackedPositions: state3.attackedPositions,
                       availableMoves: state3.availableMoves,
                       board: state3.board,
                       canSend: state3.canSend,
+                      changeName: state3.changeName,
+                      chat: state3.chat,
+                      chatLog: state3.chatLog,
+                      chatState: state3.chatState,
                       flagPosition: state3.flagPosition,
                       hand: state3.hand,
                       lastReceivedMessage: state3.lastReceivedMessage,
                       messages: state3.messages,
+                      name: state3.name,
+                      nameChanged: state3.nameChanged,
                       playerId: state3.playerId,
+                      previousMove: state3.previousMove,
+                      request: state3.request,
                       score: state3.score,
                       selectedPiece: state3.selectedPiece,
+                      status: state3.status,
                       tickCount: state3.tickCount,
+                      turn: state3.turn,
+                      upperCase: state3.upperCase,
                       winner: state3.winner,
-                      actions: -3 | 0,
-                      turn: false,
-                      state: InGame.value
+                      opponentName: maybeName.value0
                     };
                   }
                   ;
+                  throw new Error("Failed pattern match at Main (line 335, column 69 - line 339, column 63): " + [maybeName.constructor.name]);
+                }
+                ;
+                return state3;
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 329, column 13 - line 340, column 36): " + [state3.playerId.constructor.name]);
+            };
+          }
+          ;
+          return function __do2() {
+            log2("Unknown Name: " + show1(message2))();
+            return state3;
+          };
+        };
+      };
+      var processChat = function(message2) {
+        return function(state3) {
+          var $831 = contains("Chat: Send")(message2.payload);
+          if ($831) {
+            return function __do2() {
+              var maybeChat = stripPrefix("Chat: Send ")(message2.payload);
+              if (state3.playerId instanceof Nothing) {
+                return state3;
+              }
+              ;
+              if (state3.playerId instanceof Just) {
+                var $833 = eq5(message2.playerId)(state3.playerId.value0);
+                if ($833) {
+                  var $834 = length(state3.chatLog) > 30;
+                  if ($834) {
+                    var maybeChatLog = uncons(state3.chatLog);
+                    if (maybeChatLog instanceof Nothing) {
+                      return state3;
+                    }
+                    ;
+                    if (maybeChatLog instanceof Just) {
+                      return {
+                        actions: state3.actions,
+                        attackedPositions: state3.attackedPositions,
+                        availableMoves: state3.availableMoves,
+                        board: state3.board,
+                        canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chatState: state3.chatState,
+                        flagPosition: state3.flagPosition,
+                        hand: state3.hand,
+                        lastReceivedMessage: state3.lastReceivedMessage,
+                        messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
+                        playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
+                        score: state3.score,
+                        selectedPiece: state3.selectedPiece,
+                        status: state3.status,
+                        tickCount: state3.tickCount,
+                        turn: state3.turn,
+                        upperCase: state3.upperCase,
+                        winner: state3.winner,
+                        chat: "",
+                        chatLog: append13(maybeChatLog.value0.tail)([state3.name + (": " + state3.chat)])
+                      };
+                    }
+                    ;
+                    throw new Error("Failed pattern match at Main (line 309, column 29 - line 311, column 141): " + [maybeChatLog.constructor.name]);
+                  }
+                  ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    chat: "",
+                    chatLog: append13(state3.chatLog)([state3.name + (": " + state3.chat)])
+                  };
+                }
+                ;
+                if (maybeChat instanceof Nothing) {
                   return state3;
-                }();
-                var state22 = function() {
-                  var $688 = !eq4(state3.playerId.value0)(message2.playerId);
-                  if ($688) {
-                    return state1;
+                }
+                ;
+                if (maybeChat instanceof Just) {
+                  var $840 = length(state3.chatLog) > 30;
+                  if ($840) {
+                    var maybeChatLog = uncons(state3.chatLog);
+                    if (maybeChatLog instanceof Nothing) {
+                      return state3;
+                    }
+                    ;
+                    if (maybeChatLog instanceof Just) {
+                      return {
+                        actions: state3.actions,
+                        attackedPositions: state3.attackedPositions,
+                        availableMoves: state3.availableMoves,
+                        board: state3.board,
+                        canSend: state3.canSend,
+                        changeName: state3.changeName,
+                        chat: state3.chat,
+                        chatState: state3.chatState,
+                        flagPosition: state3.flagPosition,
+                        hand: state3.hand,
+                        lastReceivedMessage: state3.lastReceivedMessage,
+                        messages: state3.messages,
+                        name: state3.name,
+                        nameChanged: state3.nameChanged,
+                        opponentName: state3.opponentName,
+                        playerId: state3.playerId,
+                        previousMove: state3.previousMove,
+                        request: state3.request,
+                        score: state3.score,
+                        selectedPiece: state3.selectedPiece,
+                        status: state3.status,
+                        tickCount: state3.tickCount,
+                        turn: state3.turn,
+                        upperCase: state3.upperCase,
+                        winner: state3.winner,
+                        chatLog: append13(maybeChatLog.value0.tail)([state3.opponentName + (": " + maybeChat.value0)])
+                      };
+                    }
+                    ;
+                    throw new Error("Failed pattern match at Main (line 317, column 33 - line 319, column 134): " + [maybeChatLog.constructor.name]);
                   }
                   ;
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    chatLog: append13(state3.chatLog)([state3.opponentName + (": " + maybeChat.value0)])
+                  };
+                }
+                ;
+                throw new Error("Failed pattern match at Main (line 313, column 26 - line 320, column 114): " + [maybeChat.constructor.name]);
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 303, column 13 - line 320, column 114): " + [state3.playerId.constructor.name]);
+            };
+          }
+          ;
+          return function __do2() {
+            log2("Unknown Chat: " + show1(message2))();
+            return state3;
+          };
+        };
+      };
+      var processAction = function(message2) {
+        return function(state3) {
+          var $847 = contains("Move")(message2.payload);
+          if ($847) {
+            return function __do2() {
+              var maybeMove = stripPrefix("Action: Move ")(message2.payload);
+              if (maybeMove instanceof Nothing) {
+                return state3;
+              }
+              ;
+              if (maybeMove instanceof Just) {
+                var tokens = split(" to ")(maybeMove.value0);
+                var pos1 = tokensToPos(tokens)(0)();
+                var pos2 = tokensToPos(tokens)(1)();
+                return movePiece(flipPosition(pos1))(flipPosition(pos2))(state3)();
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 244, column 13 - line 251, column 76): " + [maybeMove.constructor.name]);
+            };
+          }
+          ;
+          var $850 = contains("Capture")(message2.payload);
+          if ($850) {
+            return function __do2() {
+              var maybeCapture = stripPrefix("Action: Capture ")(message2.payload);
+              if (maybeCapture instanceof Nothing) {
+                return state3;
+              }
+              ;
+              if (maybeCapture instanceof Just) {
+                var tokens = split(" to ")(maybeCapture.value0);
+                var pos1 = tokensToPos(tokens)(0)();
+                var pos2 = tokensToPos(tokens)(1)();
+                return capturePiece(flipPosition(pos1))(flipPosition(pos2))(state3)();
+              }
+              ;
+              throw new Error("Failed pattern match at Main (line 256, column 13 - line 263, column 79): " + [maybeCapture.constructor.name]);
+            };
+          }
+          ;
+          return function __do2() {
+            log2("Unknown Action: " + show1(message2))();
+            return state3;
+          };
+        };
+      };
+      var processMessages = function(effect) {
+        return function(message2) {
+          return function __do2() {
+            var state3 = effect();
+            log2("processing " + message2.payload)();
+            if (state3.playerId instanceof Nothing) {
+              return state3;
+            }
+            ;
+            if (state3.playerId instanceof Just) {
+              var state1 = function() {
+                var $854 = eq7(state3.status)(NotConnected.value);
+                if ($854) {
+                  return {
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    tickCount: state3.tickCount,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    actions: -3 | 0,
+                    turn: false,
+                    status: Waiting.value
+                  };
+                }
+                ;
+                return state3;
+              }();
+              var state22 = function() {
+                var $855 = !eq5(state3.playerId.value0)(message2.playerId);
+                if ($855) {
                   return state1;
-                }();
-                var state32 = function() {
-                  var $689 = eq4(state3.playerId.value0)(message2.playerId);
-                  if ($689) {
-                    return {
-                      actions: state22.actions,
-                      attackedPositions: state22.attackedPositions,
-                      availableMoves: state22.availableMoves,
-                      board: state22.board,
-                      canSend: state22.canSend,
-                      flagPosition: state22.flagPosition,
-                      hand: state22.hand,
-                      lastReceivedMessage: state22.lastReceivedMessage,
-                      playerId: state22.playerId,
-                      score: state22.score,
-                      selectedPiece: state22.selectedPiece,
-                      state: state22.state,
-                      tickCount: state22.tickCount,
-                      turn: state22.turn,
-                      winner: state22.winner,
-                      messages: filter(messageFilter(message2))(state22.messages)
-                    };
-                  }
-                  ;
-                  if (message2.payload === "Join") {
-                    return {
-                      attackedPositions: state22.attackedPositions,
-                      availableMoves: state22.availableMoves,
-                      board: state22.board,
-                      canSend: state22.canSend,
-                      flagPosition: state22.flagPosition,
-                      hand: state22.hand,
-                      lastReceivedMessage: state22.lastReceivedMessage,
-                      playerId: state22.playerId,
-                      score: state22.score,
-                      selectedPiece: state22.selectedPiece,
-                      tickCount: state22.tickCount,
-                      winner: state22.winner,
-                      actions: 3,
-                      turn: true,
-                      state: InGame.value,
-                      messages: filter(messageFilter(message2))(state22.messages)
-                    };
-                  }
-                  ;
-                  if (message2.payload === "Lose") {
-                    return {
-                      actions: state22.actions,
-                      attackedPositions: state22.attackedPositions,
-                      availableMoves: state22.availableMoves,
-                      board: state22.board,
-                      canSend: state22.canSend,
-                      flagPosition: state22.flagPosition,
-                      hand: state22.hand,
-                      lastReceivedMessage: state22.lastReceivedMessage,
-                      playerId: state22.playerId,
-                      score: state22.score,
-                      selectedPiece: state22.selectedPiece,
-                      tickCount: state22.tickCount,
-                      turn: state22.turn,
-                      winner: new Just(true),
-                      state: End.value,
-                      messages: filter(messageFilter(message2))(state22.messages)
-                    };
-                  }
-                  ;
-                  if (message2.payload === "Win") {
-                    return {
-                      actions: state22.actions,
-                      attackedPositions: state22.attackedPositions,
-                      availableMoves: state22.availableMoves,
-                      board: state22.board,
-                      canSend: state22.canSend,
-                      flagPosition: state22.flagPosition,
-                      hand: state22.hand,
-                      lastReceivedMessage: state22.lastReceivedMessage,
-                      playerId: state22.playerId,
-                      score: state22.score,
-                      selectedPiece: state22.selectedPiece,
-                      tickCount: state22.tickCount,
-                      turn: state22.turn,
-                      winner: new Just(false),
-                      state: End.value,
-                      messages: filter(messageFilter(message2))(state22.messages)
-                    };
-                  }
-                  ;
-                  var $691 = contains("Action")(message2.payload);
-                  if ($691) {
-                    var maybeAction = stripPrefix("Action: ")(message2.payload);
-                    var actionMessage = function() {
-                      if (maybeAction instanceof Nothing) {
-                        return message2;
-                      }
-                      ;
-                      if (maybeAction instanceof Just) {
-                        return {
-                          playerId: message2.playerId,
-                          payload: maybeAction.value0
-                        };
-                      }
-                      ;
-                      throw new Error("Failed pattern match at Main (line 265, column 46 - line 267, column 73): " + [maybeAction.constructor.name]);
-                    }();
-                    return processAction(actionMessage)(message2)(state22)();
-                  }
-                  ;
-                  log2("Unknown Message: " + show1(message2))();
+                }
+                ;
+                if (message2.payload === "Start") {
+                  return {
+                    attackedPositions: state1.attackedPositions,
+                    availableMoves: state1.availableMoves,
+                    board: state1.board,
+                    canSend: state1.canSend,
+                    changeName: state1.changeName,
+                    chat: state1.chat,
+                    chatLog: state1.chatLog,
+                    chatState: state1.chatState,
+                    flagPosition: state1.flagPosition,
+                    hand: state1.hand,
+                    lastReceivedMessage: state1.lastReceivedMessage,
+                    messages: state1.messages,
+                    name: state1.name,
+                    nameChanged: state1.nameChanged,
+                    opponentName: state1.opponentName,
+                    playerId: state1.playerId,
+                    previousMove: state1.previousMove,
+                    request: state1.request,
+                    score: state1.score,
+                    selectedPiece: state1.selectedPiece,
+                    tickCount: state1.tickCount,
+                    upperCase: state1.upperCase,
+                    winner: state1.winner,
+                    actions: 3,
+                    turn: true,
+                    status: InGame.value
+                  };
+                }
+                ;
+                var $857 = contains("Request: ")(message2.payload);
+                if ($857) {
+                  return processRequest(message2)(state1)();
+                }
+                ;
+                var $858 = contains("Chat: ")(message2.payload);
+                if ($858) {
+                  return processChat(message2)(state1)();
+                }
+                ;
+                var $859 = contains("Name: ")(message2.payload);
+                if ($859) {
+                  return processName(message2)(state1)();
+                }
+                ;
+                return state1;
+              }();
+              var state32 = function() {
+                var $860 = eq5(state3.playerId.value0)(message2.playerId);
+                if ($860) {
+                  return state22;
+                }
+                ;
+                if (message2.payload === "Join") {
+                  send("Start")();
+                  return state22;
+                }
+                ;
+                if (message2.payload === "Name Changed") {
+                  return {
+                    actions: state3.actions,
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    status: state3.status,
+                    tickCount: state3.tickCount,
+                    turn: state3.turn,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    nameChanged: true
+                  };
+                }
+                ;
+                if (message2.payload === "Start") {
+                  return {
+                    attackedPositions: state3.attackedPositions,
+                    availableMoves: state3.availableMoves,
+                    board: state3.board,
+                    canSend: state3.canSend,
+                    changeName: state3.changeName,
+                    chat: state3.chat,
+                    chatLog: state3.chatLog,
+                    chatState: state3.chatState,
+                    flagPosition: state3.flagPosition,
+                    hand: state3.hand,
+                    lastReceivedMessage: state3.lastReceivedMessage,
+                    messages: state3.messages,
+                    name: state3.name,
+                    nameChanged: state3.nameChanged,
+                    opponentName: state3.opponentName,
+                    playerId: state3.playerId,
+                    previousMove: state3.previousMove,
+                    request: state3.request,
+                    score: state3.score,
+                    selectedPiece: state3.selectedPiece,
+                    tickCount: state3.tickCount,
+                    upperCase: state3.upperCase,
+                    winner: state3.winner,
+                    actions: -3 | 0,
+                    turn: false,
+                    status: InGame.value
+                  };
+                }
+                ;
+                if (message2.payload === "Lose") {
                   return {
                     actions: state22.actions,
                     attackedPositions: state22.attackedPositions,
                     availableMoves: state22.availableMoves,
                     board: state22.board,
                     canSend: state22.canSend,
+                    changeName: state22.changeName,
+                    chat: state22.chat,
+                    chatLog: state22.chatLog,
+                    chatState: state22.chatState,
                     flagPosition: state22.flagPosition,
                     hand: state22.hand,
                     lastReceivedMessage: state22.lastReceivedMessage,
+                    messages: state22.messages,
+                    name: state22.name,
+                    nameChanged: state22.nameChanged,
+                    opponentName: state22.opponentName,
                     playerId: state22.playerId,
-                    score: state22.score,
+                    previousMove: state22.previousMove,
+                    request: state22.request,
                     selectedPiece: state22.selectedPiece,
-                    state: state22.state,
                     tickCount: state22.tickCount,
                     turn: state22.turn,
-                    winner: state22.winner,
-                    messages: filter(messageFilter(message2))(state22.messages)
+                    upperCase: state22.upperCase,
+                    winner: new Just(true),
+                    score: {
+                      opponent: state3.score.opponent,
+                      me: state3.score.me + 1 | 0
+                    },
+                    status: End.value
                   };
-                }();
-                return state32;
-              }
-              ;
-              throw new Error("Failed pattern match at Main (line 252, column 9 - line 272, column 28): " + [state3.playerId.constructor.name]);
-            };
-          };
-        };
-        var readMessages = function(state3) {
-          if (state3.playerId instanceof Nothing) {
-            if (state3.lastReceivedMessage instanceof Nothing) {
-              return function __do() {
-                send("Join")();
-                return state3;
+                }
+                ;
+                if (message2.payload === "Win") {
+                  return {
+                    actions: state22.actions,
+                    attackedPositions: state22.attackedPositions,
+                    availableMoves: state22.availableMoves,
+                    board: state22.board,
+                    canSend: state22.canSend,
+                    changeName: state22.changeName,
+                    chat: state22.chat,
+                    chatLog: state22.chatLog,
+                    chatState: state22.chatState,
+                    flagPosition: state22.flagPosition,
+                    hand: state22.hand,
+                    lastReceivedMessage: state22.lastReceivedMessage,
+                    messages: state22.messages,
+                    name: state22.name,
+                    nameChanged: state22.nameChanged,
+                    opponentName: state22.opponentName,
+                    playerId: state22.playerId,
+                    previousMove: state22.previousMove,
+                    request: state22.request,
+                    selectedPiece: state22.selectedPiece,
+                    tickCount: state22.tickCount,
+                    turn: state22.turn,
+                    upperCase: state22.upperCase,
+                    winner: new Just(false),
+                    score: {
+                      me: state3.score.me,
+                      opponent: state3.score.opponent + 1 | 0
+                    },
+                    status: End.value
+                  };
+                }
+                ;
+                var $862 = contains("Action: ")(message2.payload);
+                if ($862) {
+                  return processAction(message2)(state22)();
+                }
+                ;
+                var $863 = contains("Request: ")(message2.payload);
+                if ($863) {
+                  return processRequest(message2)(state22)();
+                }
+                ;
+                var $864 = contains("Chat: ")(message2.payload);
+                if ($864) {
+                  return processChat(message2)(state22)();
+                }
+                ;
+                var $865 = contains("Name: ")(message2.payload);
+                if ($865) {
+                  return processName(message2)(state22)();
+                }
+                ;
+                log2("Unknown Message: " + show1(message2))();
+                return state22;
+              }();
+              return {
+                actions: state32.actions,
+                attackedPositions: state32.attackedPositions,
+                availableMoves: state32.availableMoves,
+                board: state32.board,
+                canSend: state32.canSend,
+                changeName: state32.changeName,
+                chat: state32.chat,
+                chatLog: state32.chatLog,
+                chatState: state32.chatState,
+                flagPosition: state32.flagPosition,
+                hand: state32.hand,
+                lastReceivedMessage: state32.lastReceivedMessage,
+                name: state32.name,
+                nameChanged: state32.nameChanged,
+                opponentName: state32.opponentName,
+                playerId: state32.playerId,
+                previousMove: state32.previousMove,
+                request: state32.request,
+                score: state32.score,
+                selectedPiece: state32.selectedPiece,
+                status: state32.status,
+                tickCount: state32.tickCount,
+                turn: state32.turn,
+                upperCase: state32.upperCase,
+                winner: state32.winner,
+                messages: filter(messageFilter(message2))(state32.messages)
               };
             }
             ;
-            if (state3.lastReceivedMessage instanceof Just) {
-              if (state3.lastReceivedMessage.value0.payload === "Join") {
-                return pure4({
-                  actions: state3.actions,
-                  attackedPositions: state3.attackedPositions,
-                  availableMoves: state3.availableMoves,
-                  board: state3.board,
-                  canSend: state3.canSend,
-                  flagPosition: state3.flagPosition,
-                  hand: state3.hand,
-                  lastReceivedMessage: state3.lastReceivedMessage,
-                  score: state3.score,
-                  selectedPiece: state3.selectedPiece,
-                  state: state3.state,
-                  tickCount: state3.tickCount,
-                  turn: state3.turn,
-                  winner: state3.winner,
-                  playerId: new Just(state3.lastReceivedMessage.value0.playerId),
-                  messages: filter(messageFilter(state3.lastReceivedMessage.value0))(state3.messages)
-                });
-              }
-              ;
-              return pure4(state3);
+            throw new Error("Failed pattern match at Main (line 349, column 9 - line 376, column 90): " + [state3.playerId.constructor.name]);
+          };
+        };
+      };
+      var readMessages = function(state3) {
+        if (state3.playerId instanceof Nothing) {
+          if (state3.lastReceivedMessage instanceof Nothing) {
+            return function __do2() {
+              send("Join")();
+              return state3;
+            };
+          }
+          ;
+          if (state3.lastReceivedMessage instanceof Just) {
+            if (state3.lastReceivedMessage.value0.payload === "Join") {
+              return pure4({
+                actions: state3.actions,
+                attackedPositions: state3.attackedPositions,
+                availableMoves: state3.availableMoves,
+                board: state3.board,
+                canSend: state3.canSend,
+                changeName: state3.changeName,
+                chat: state3.chat,
+                chatLog: state3.chatLog,
+                chatState: state3.chatState,
+                flagPosition: state3.flagPosition,
+                hand: state3.hand,
+                lastReceivedMessage: state3.lastReceivedMessage,
+                name: state3.name,
+                nameChanged: state3.nameChanged,
+                opponentName: state3.opponentName,
+                previousMove: state3.previousMove,
+                request: state3.request,
+                score: state3.score,
+                selectedPiece: state3.selectedPiece,
+                status: state3.status,
+                tickCount: state3.tickCount,
+                turn: state3.turn,
+                upperCase: state3.upperCase,
+                winner: state3.winner,
+                playerId: new Just(state3.lastReceivedMessage.value0.playerId),
+                messages: filter(messageFilter(state3.lastReceivedMessage.value0))(state3.messages)
+              });
             }
             ;
-            throw new Error("Failed pattern match at Main (line 206, column 17 - line 212, column 40): " + [state3.lastReceivedMessage.constructor.name]);
+            return pure4(state3);
           }
           ;
-          if (state3.playerId instanceof Just) {
-            return foldl3(processMessage)(pure4(state3))(state3.messages);
-          }
-          ;
-          throw new Error("Failed pattern match at Main (line 204, column 9 - line 215, column 65): " + [state3.playerId.constructor.name]);
-        };
-        var newState = mapFlipped22(mapFlipped22(mapFlipped22(bind3(bind3(mapFlipped22(bind3(bind3(pure4(state$prime))(receiveMessage))(readMessages))(updateFlagPosition))(updateWinner))(updateTurn))(updateAvailableMoves))(updateAttackedPositions))(updateTickCount);
-        return newState;
-      }
-      ;
-      throw new Error("Failed pattern match at Main (line 176, column 1 - line 176, column 67): " + [send.constructor.name, state$prime.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 228, column 17 - line 234, column 40): " + [state3.lastReceivedMessage.constructor.name]);
+        }
+        ;
+        if (state3.playerId instanceof Just) {
+          return function __do2() {
+            (function() {
+              var $871 = state3.nameChanged === false;
+              if ($871) {
+                return send("Name: " + state3.name)();
+              }
+              ;
+              return unit;
+            })();
+            return foldl12(processMessages)(pure4(state3))(state3.messages)();
+          };
+        }
+        ;
+        throw new Error("Failed pattern match at Main (line 226, column 9 - line 238, column 66): " + [state3.playerId.constructor.name]);
+      };
+      var newState = mapFlipped22(mapFlipped22(mapFlipped22(bind3(bind3(mapFlipped22(bind3(bind3(pure4(state$prime))(receiveMessage))(readMessages))(updateFlagPosition))(updateWinner))(updateTurn))(updateAvailableMoves))(updateAttackedPositions))(updateTickCount);
+      return newState;
     };
   };
   var main = /* @__PURE__ */ startNetworkGame({
@@ -6894,7 +9614,7 @@
     height: height8,
     ipAddress: "localhost",
     port: 15e3,
-    imagePaths: ["images/King.png", "images/Queen.png", "images/Flag.png", "images/Flag1.png", "images/Flag2.png", "images/Prince.png", "images/Wizard.png", "images/Dragon.png", "images/Orc.png", "images/Dwarf.png", "images/ElfRanged.png", "images/ElfMelee.png", "images/Human.png", "images/Goblin.png", "images/HumanUpgraded.png", "images/GoblinUpgraded.png"]
+    imagePaths: ["images/King.png", "images/Queen.png", "images/Flag.png", "images/Flag1.png", "images/Flag2.png", "images/Prince.png", "images/Wizard.png", "images/Dragon.png", "images/Orc.png", "images/Dwarf.png", "images/ElfRanged.png", "images/ElfMelee.png", "images/Human.png", "images/Goblin.png", "images/Warrior.png", "images/Hobgoblin.png"]
   });
 
   // <stdin>

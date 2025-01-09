@@ -6,6 +6,14 @@
     - Move: Moves an owned piece onto cell (r, c)
     - Drop: Drop a captured piece onto cell (r, c)
 
+## Keyboard Controls
+- C Key: Change name
+- R Key: Request a rematch
+- Y Key: Accept a request
+- N Key: Decline a request
+- Enter: Type in chat
+- Escape: Stop typing in chat
+
 ## Pieces
 
 ### Rearguard
