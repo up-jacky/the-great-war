@@ -2389,7 +2389,7 @@
   };
   var connect = function(ipAddr) {
     return function(port2) {
-      var addr = "ws://" + (ipAddr + (":" + show2(port2)));
+      var addr = "wss://" + (ipAddr + (":" + show2(port2)));
       return function __do2() {
         log2(addr)();
         var ws = create(addr)([])();
@@ -9613,7 +9613,7 @@
     width: width8,
     height: height8,
     ipAddress: "localhost",
-    port: 15e3,
+    port: 443,
     imagePaths: ["images/King.png", "images/Queen.png", "images/Flag.png", "images/Flag1.png", "images/Flag2.png", "images/Prince.png", "images/Wizard.png", "images/Dragon.png", "images/Orc.png", "images/Dwarf.png", "images/ElfRanged.png", "images/ElfMelee.png", "images/Human.png", "images/Goblin.png", "images/Warrior.png", "images/Hobgoblin.png"]
   });
 
